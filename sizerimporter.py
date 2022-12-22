@@ -59,19 +59,23 @@ def get_access_token(rt):
 
 def live_optics_file_parser(filename):
     """Parse an ingested Live Optics file to JSON"""
-    excel_data_df = pd.read_excel(filename, sheet_name="VMs")
-    excel_data_df = excel_data_df.drop(columns=['VM OS', 'Disks', 'NICs', 'Used Memory (active) (MB)',
-                                                'Consumed Memory (MB)', 'Provisioned Memory (Bytes)',
-                                                'Used Memory (active) (Bytes)', 'Consumed Memory (Bytes)',
-                                                'Guest VM % Occupancy', 'VMware Tools Version', 'Connection State',
-                                                'Template', 'Unshared (MB)', 'vCenter', 'UUID', 'InstanceUUID',
-                                                'Datastore',
-                                                'Host', 'Guest IP1', 'Guest IP2', 'Guest IP3', 'Guest IP4', 'Boot Time',
-                                                'Date Provisioned', ' Image Backup'])
-    excel_data_df = excel_data_df.drop([0])
+    excel_vmdata_df = pd.read_excel(filename, sheet_name="VMs")
+    excel_vmdata_df = excel_vmdata_df.drop(columns=['VM OS', 'Disks', 'NICs', 'Used Memory (active) (MB)',
+                                                    'Consumed Memory (MB)', 'Provisioned Memory (Bytes)',
+                                                    'Used Memory (active) (Bytes)', 'Consumed Memory (Bytes)',
+                                                    'Guest VM % Occupancy', 'VMware Tools Version', 'Connection State',
+                                                    'Template', 'Unshared (MB)', 'vCenter', 'UUID', 'InstanceUUID',
+                                                    'Datastore', 'Host', 'Guest IP1', 'Guest IP2', 'Guest IP3',
+                                                    'Guest IP4', 'Boot Time', 'Date Provisioned', ' Image Backup'])
+
+    excel_perfdata_df = pd.read_excel(filename, sheet_name="VM Performance")
+    excel_perfdata_df = excel_perfdata_df.drop(columns=['Host', 'Datacenter', 'Cluster', 'VM IO Classification'])
+
+    vmerge = excel_vmdata_df.merge(excel_perfdata_df, left_on='MOB ID', right_on='MOB ID', suffixes=('_left', '_right'))
+
+    print(vmerge)
     # pretty_data = json.dumps(excel_data_json, indent=4)
     # print(pretty_data)
-    print(excel_data_df)
 
 def rvtools_file_parser(filename):
     """Parse an ingested RVTools file to JSON"""
