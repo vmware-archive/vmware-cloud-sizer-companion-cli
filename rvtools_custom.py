@@ -1,42 +1,33 @@
 #!/usr/bin/env python3
 import pandas as pd
 
-def lova_conversion(**kwargs):
+def rvtools_conversion(**kwargs):
 
     file_name = kwargs['file_name'] 
     scope = kwargs['scope']
     cap = kwargs['cap']
 
-    excel_vmdata_df = pd.read_excel(file_name, sheet_name="VMs")
+    excel_vmdata_df = pd.read_excel(file_name, sheet_name = 'vInfo')
 
     # specify columns to KEEP - all others will be dropped
     excel_vmdata_df.drop(excel_vmdata_df.columns.difference([
-        'Cluster','Guest IP1','Guest IP2','Guest IP3','Guest IP4','VM OS',
-        'Guest Hostname', 'Power State', 'Virtual CPU', 'VM Name', 'Virtual Disk Size (MB)',
-        'Virtual Disk Used (MB)', 'Provisioned Memory (MB)'
-        ]), axis=1, inplace=True)
+        'Cluster', 'Primary IP Address','OS according to the VMware Tools',
+        'DNS Name','Powerstate','CPUs','VM','Provisioned MiB','In Use MiB','Memory'
+        ]), axis = 1, inplace = True)
 
     # rename remaining columns
     excel_vmdata_df.rename(columns = {
         'Cluster':'cluster', 
-        'VM OS':'os',
-        'Guest Hostname':'os_name',
-        'Power State':'power_state',
-        'Virtual CPU':'vcpu',
-        'VM Name':'vm_name',
-        'Virtual Disk Size (MB)':'vmdk_size_gb',
-        'Virtual Disk Used (MB)':'vmdk_used_gb',
-        'Provisioned Memory (MB)':'vram_gb' 
+        'OS according to the VMware Tools':'os',
+        'DNS Name':'os_name',
+        'Powerstate':'power_state',
+        'CPUs':'vcpu',
+        'VM':'vm_name',
+        'Provisioned MiB':'vmdk_size_gb',
+        'In Use MiB':'vmdk_used_gb',
+        'Memory':'vram_gb', 
+        'Primary IP Address':'ip_addresses' 
         }, inplace = True)
-
-    # aggregate IP addresses into one column
-    excel_vmdata_df["Guest IP1"].fillna("no ip", inplace = True)
-    excel_vmdata_df["Guest IP2"].fillna("no ip", inplace = True)
-    excel_vmdata_df["Guest IP3"].fillna("no ip", inplace = True)
-    excel_vmdata_df["Guest IP4"].fillna("no ip", inplace = True)
-    excel_vmdata_df['ip_addresses'] = excel_vmdata_df['Guest IP1'].map(str)+ ', ' + excel_vmdata_df['Guest IP2'].map(str)+ ', ' + excel_vmdata_df['Guest IP3'].map(str)+ ', ' + excel_vmdata_df['Guest IP4'].map(str)
-    excel_vmdata_df['ip_addresses'] = excel_vmdata_df.ip_addresses.str.replace(', no ip' , '')
-    excel_vmdata_df.drop(['Guest IP1', 'Guest IP2', 'Guest IP3', 'Guest IP4'], axis=1, inplace=True)
 
     # convert RAM and storage numbers into GB
     excel_vmdata_df['vmdk_used_gb'] = excel_vmdata_df['vmdk_used_gb']/1024
