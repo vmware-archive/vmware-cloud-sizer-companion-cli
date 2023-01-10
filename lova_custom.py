@@ -9,11 +9,13 @@ def lova_conversion(**kwargs):
 
     excel_vmdata_df = pd.read_excel(file_name, sheet_name="VMs")
 
+    # drop unnecessary columns
     excel_vmdata_df.drop(["Boot Time","Connection State","Consumed Memory (Bytes)","Consumed Memory (MB)",
         "Datacenter","Datastore","Date Provisioned","Disks","Guest VM % Occupancy","Guest VM Disk Capacity (MB)","Guest VM Disk Used (MB)",
         "Host","InstanceUUID","IsRunning","NICs","Provisioned Memory (Bytes)","Template","Unshared (MB)","Used Memory (active) (Bytes)",
         "Used Memory (active) (MB)","UUID","vCenter","VMware Tools Version"," Image Backup"], axis=1, inplace=True)
 
+    # rename remaining columns
     excel_vmdata_df.rename(columns = {
         'Cluster':'cluster', 
         'VM OS':'os',
@@ -26,6 +28,7 @@ def lova_conversion(**kwargs):
         'Provisioned Memory (MB)':'vram_gb' 
         }, inplace = True)
 
+    # aggregate IP addresses into one column
     excel_vmdata_df["Guest IP1"].fillna("no ip", inplace = True)
     excel_vmdata_df["Guest IP2"].fillna("no ip", inplace = True)
     excel_vmdata_df["Guest IP3"].fillna("no ip", inplace = True)
@@ -34,13 +37,21 @@ def lova_conversion(**kwargs):
     excel_vmdata_df['ip_addresses'] = excel_vmdata_df.ip_addresses.str.replace(', no ip' , '')
     excel_vmdata_df.drop(['Guest IP1', 'Guest IP2', 'Guest IP3', 'Guest IP4'], axis=1, inplace=True)
 
+    # convert RAM and storage numbers into GB
     excel_vmdata_df['vmdk_used_gb'] = excel_vmdata_df['vmdk_used_gb']/1024
     excel_vmdata_df['vmdk_size_gb'] = excel_vmdata_df['vmdk_size_gb']/1024
     excel_vmdata_df['vram_gb'] = excel_vmdata_df['vram_gb']/1024
 
-    cluster_profile = excel_vmdata_df.groupby('cluster').agg({'vcpu' : ['sum'],'vram_gb' : ['sum'], 'vmdk_size_gb' : ['sum']})
+    # separate workloads by cluster
+    cluster_profiles = excel_vmdata_df.groupby('cluster')
 
-    return cluster_profile
+    # save resulting dataframes as excel files 
+    output_path = './output'
+    for cluster, cluster_df in cluster_profiles:
+        cluster_df.to_excel(f'{output_path}/cluster_{cluster}.xlsx')
+
+    cluster_pivot = excel_vmdata_df.groupby('cluster').agg({'vcpu' : ['sum'],'vram_gb' : ['sum'], 'vmdk_size_gb' : ['sum']})
+    return cluster_pivot
 
     # excel_partition_df = pd.read_excel(file_name, sheet_name="VM Disks")
     # excel_partition_df = excel_partition_df.drop(columns=[
