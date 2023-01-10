@@ -9,11 +9,19 @@ def lova_conversion(**kwargs):
 
     excel_vmdata_df = pd.read_excel(file_name, sheet_name="VMs")
 
-    # drop unnecessary columns
-    excel_vmdata_df.drop(["Boot Time","Connection State","Consumed Memory (Bytes)","Consumed Memory (MB)",
-        "Datacenter","Datastore","Date Provisioned","Disks","Guest VM % Occupancy","Guest VM Disk Capacity (MB)","Guest VM Disk Used (MB)",
-        "Host","InstanceUUID","IsRunning","NICs","Provisioned Memory (Bytes)","Template","Unshared (MB)","Used Memory (active) (Bytes)",
-        "Used Memory (active) (MB)","UUID","vCenter","VMware Tools Version"," Image Backup"], axis=1, inplace=True)
+    # specify columns to KEEP - all others will be dropped
+    # excel_vmdata_df.drop([
+    #     "Boot Time","Connection State","Consumed Memory (Bytes)","Consumed Memory (MB)",
+    #     "Datacenter","Datastore","Date Provisioned","Disks","Guest VM % Occupancy","Guest VM Disk Capacity (MB)","Guest VM Disk Used (MB)",
+    #     "Host","InstanceUUID","IsRunning","NICs","Provisioned Memory (Bytes)","Template","Unshared (MB)","Used Memory (active) (Bytes)",
+    #     "Used Memory (active) (MB)","UUID","vCenter","VMware Tools Version"," Image Backup"
+    #     ], axis=1, inplace=True)
+
+    excel_vmdata_df.drop(excel_vmdata_df.columns.difference([
+        'Cluster','Guest IP1','Guest IP2','Guest IP3','Guest IP4','VM OS',
+        'Guest Hostname', 'Power State', 'Virtual CPU', 'VM Name', 'Virtual Disk Size (MB)',
+        'Virtual Disk Used (MB)', 'Provisioned Memory (MB)'
+        ]), axis=1, inplace=True)
 
     # rename remaining columns
     excel_vmdata_df.rename(columns = {

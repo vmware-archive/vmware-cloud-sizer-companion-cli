@@ -8,6 +8,8 @@ import sys
 import json
 from sizer_json import get_access_token, parse_excel, get_recommendation
 from lova_custom import lova_conversion
+from rvtools_custom import rvtools_conversion
+
 # from rv_custom import rv_conversion
 
 def main():
@@ -46,20 +48,26 @@ def main():
 
     match action:
         case "default":
-            if ft == 'live-optics':
-                vms_json = parse_excel(**params)
-                print(vms_json)
-                # if vms_json is not None:
-                #     recommendation_payload = vms_json["response"]["key"]["request"]
-                #     params["json_payload"] = recommendation_payload
-                #     recommendation = get_recommendation(**params)
-                #     print(recommendation)
-                # else:
-                #     print()
-                #     print("Something went wrong.  Please check your syntax and try again.")
+            vms_json = parse_excel(**params)
+            print(vms_json)
+            # if vms_json is not None:
+            #     recommendation_payload = vms_json["response"]["key"]["request"]
+            #     params["json_payload"] = recommendation_payload
+            #     recommendation = get_recommendation(**params)
+            #     print(recommendation)
+            # else:
+            #     print()
+            #     print("Something went wrong.  Please check your syntax and try again.")
         case "custom":
             if ft == 'live-optics':
                 vms_json = lova_conversion(**params)
+                if vms_json is not None:
+                    print(vms_json)
+                else:
+                    print()
+                    print("Something went wrong.  Please check your syntax and try again.")
+            if ft == 'rvtools':
+                vms_json = rvtools_conversion(**params)
                 if vms_json is not None:
                     print(vms_json)
                 else:
