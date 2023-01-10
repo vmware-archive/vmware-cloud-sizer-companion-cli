@@ -2,82 +2,70 @@
 
 #VMC Sizer Importer for Python
 
-import pandas as pd
 import argparse
 import requests
 import sys
 import json
+from sizer_json import get_access_token, parse_excel, get_recommendation
+from lova_custom import lova_conversion
+# from rv_custom import rv_conversion
 
-def main(args):
+def main():
     ap = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, epilog="Welcome to the VMC Sizer Import for Python")
-    ap.add_argument("-f", "--file_name", required=True, help="The file name to be imported")
-    ap.add_argument("-d", "--data_collection", required=True, choices=['rvtools', 'liveoptics'], help="Which tool completed the data collection, RVTools or Live Optics?")
+    ap.add_argument("-a", "--action", choices = ["default", "custom"], required = True, help = "Action to take - default: use the Sizer to parse a LiveOptics / RVTools file, or use the custom profiles this scripts builds.")
+    ap.add_argument("-f", "--file_name", required=True, help="The file containing the VM inventory to be imported.")
+    ap.add_argument("-ft", "--file_type", required=True, choices=['rvtools', 'live-optics', 'movere'], help="Which tool completed the data collection, RVTools, Live Optics, or Movere?")
+    ap.add_argument('-s', "--scope",  choices = ["all", "powered on"], required = True, help = "Specify whether to include all VM, or only those powered on.")
+    ap.add_argument('-c', "--capacity",  choices = ["configured", "used"], required = True, help = "Specify whether to use VMDK configured storage, or only that utilized by the guest.")
     ap.add_argument("-rt", "--refresh_token", required=False, help="The CSP API refresh token")
 
-    args = ap.parse_args(args)
+    # Manual / local calculations?
+    # direct upload - send to VMC Sizer?
+    # cluster mapping?
 
-    fn = args.file_name
-    dt = args.data_collection
+
+    # *** We will need to add some arguments if we want to allow for techniques that gather data across multiple files, like Movere 
+    # ap.add_argument("-part", "--partition_file", required=True, help="The file containing the VM partitions to be imported.")
+    # ap.add_argument("-perf", "--performance_file", required=True, help="The file containing the VM partitions to be imported.")
+
+    args = ap.parse_args()
+
+    #Set refresh token to authenticate / authorize use of sizer API
     rt = args.refresh_token
-
     access_token = get_access_token(rt)
-    vm_json = []
 
-    if dt == 'liveoptics':
-        vms_json = live_optics_file_parser(fn)
-    elif dt == 'rvtools':
-        vms_json = rvtools_file_parser(fn)
-    else:
-        sys.exit("No filename provided")
+    #Identify type of collection to call correct module
+    action = args.action
+    ft = args.file_type
 
-def get_access_token(rt):
-    """ Gets the Access Token using the Refresh Token """
-    params = {'api_token': rt}
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    response = requests.post('https://console.cloud.vmware.com/csp/gateway/am/api/auth/api-tokens/authorize',
-                             params=params, headers=headers)
-    if response.status_code != 200:
-        print(f'Error received on api token: {response.status_code}.')
-        if response.status_code == 400:
-            print("Invalid request body | In case of expired refresh_token or bad token in config.ini")
-        elif response.status_code == 404:
-            print("The requested resource could not be found")
-        elif response.status_code == 409:
-            print("The request could not be processed due to a conflict")
-        elif response.status_code == 429:
-            print("The user has sent too many requests")
-        elif response.status_code == 500:
-            print("An unexpected error has occurred while processing the request")
-        else:
-            print(f"Unexpected error code {response.status_code}")
-        return None
+    #create keyword argument dictionary to call conversion modules
+    fn = args.file_name
+    scope = args.scope
+    cap = args.capacity
 
-    json_response = response.json()
-    access_token = json_response['access_token']
-    return access_token
+    params = {"file_type":ft, "file_name":fn, "scope":scope, "cap":cap, "access_token":access_token}
 
+    match action:
+        case "default":
+            if ft == 'live-optics':
+                vms_json = parse_excel(**params)
+                print(vms_json)
+                # if vms_json is not None:
+                #     recommendation_payload = vms_json["response"]["key"]["request"]
+                #     params["json_payload"] = recommendation_payload
+                #     recommendation = get_recommendation(**params)
+                #     print(recommendation)
+                # else:
+                #     print()
+                #     print("Something went wrong.  Please check your syntax and try again.")
+        case "custom":
+            if ft == 'live-optics':
+                vms_json = lova_conversion(**params)
+                if vms_json is not None:
+                    print(vms_json)
+                else:
+                    print()
+                    print("Something went wrong.  Please check your syntax and try again.")
 
-def live_optics_file_parser(filename):
-    """Parse an ingested Live Optics file to JSON"""
-    excel_vmdata_df = pd.read_excel(filename, sheet_name="VMs")
-    excel_vmdata_df = excel_vmdata_df.drop(columns=['VM OS', 'Disks', 'NICs', 'Used Memory (active) (MB)',
-                                                    'Consumed Memory (MB)', 'Provisioned Memory (Bytes)',
-                                                    'Used Memory (active) (Bytes)', 'Consumed Memory (Bytes)',
-                                                    'Guest VM % Occupancy', 'VMware Tools Version', 'Connection State',
-                                                    'Template', 'Unshared (MB)', 'vCenter', 'UUID', 'InstanceUUID',
-                                                    'Datastore', 'Host', 'Guest IP1', 'Guest IP2', 'Guest IP3',
-                                                    'Guest IP4', 'Boot Time', 'Date Provisioned', ' Image Backup'])
-
-    excel_perfdata_df = pd.read_excel(filename, sheet_name="VM Performance")
-    excel_perfdata_df = excel_perfdata_df.drop(columns=['Host', 'Datacenter', 'Cluster', 'VM IO Classification'])
-
-    vmerge = excel_vmdata_df.merge(excel_perfdata_df, left_on='MOB ID', right_on='MOB ID', suffixes=('_left', '_right'))
-
-    print(vmerge)
-    # pretty_data = json.dumps(excel_data_json, indent=4)
-    # print(pretty_data)
-
-def rvtools_file_parser(filename):
-    """Parse an ingested RVTools file to JSON"""
-
-
+if __name__ == "__main__":
+    main()
