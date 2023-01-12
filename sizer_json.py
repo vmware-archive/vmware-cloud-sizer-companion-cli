@@ -4,6 +4,7 @@ import sys
 import json
 
 def sizer_error_handling(fxn_response):
+    """ Error handling for HTML / REST API requests """
     code = fxn_response.status_code
     print (f'API call failed with status code {code}.')
     if code == 301:
@@ -35,7 +36,9 @@ def sizer_error_handling(fxn_response):
         print("The request can not be performed because a precondition check failed. Usually, this means that the client sent a PUT or PATCH request with an out-of-date _revision property, probably because some other client has modified the entity since it was retrieved. The client should re-fetch the entry, apply any desired changes, and re-submit the operation.")
     elif code ==500:
         print(f'Error {code}: "Internal Server Error"')
-        print("An internal error occurred while executing the request. If the problem persists, perform diagnostic system tests, or contact your support representative.")
+        print('''An internal error occurred while executing the request. If the problem persists, perform diagnostic system tests, or contact your support representative.
+                It is highly likely you are seeing this because you are trying to use a modified RVTools or LiveOptics file... 
+                be sure to submit an ** unmodified ** file for parsing and recommendations.''')
     elif code ==503:
         print(f'Error {code}: "Service Unavailable"')
         print("The request can not be performed because the associated resource could not be reached or is temporarily busy. Please confirm the ORG ID and SDDC ID entries in your config.ini are correct.")
@@ -46,6 +49,7 @@ def sizer_error_handling(fxn_response):
         if 'error_message' in json_response:
             print(json_response['error_message'])
         print("See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#server_error_responses for more information on HTML error codes.")
+        print(fxn_response)
     except:
         print("No additional information in the error response.")
     return None
@@ -60,26 +64,27 @@ def get_access_token(rt):
     if response.status_code == 200:
         json_response = response.json()
         access_token = json_response['access_token']
+        # print(json.dumps(json_response, indent = 4))
         return access_token
     else:
         sizer_error_handling(response)
 
 
 def parse_excel(**kwargs):
-    sessiontoken = kwargs['access_token']
+    # sessiontoken = kwargs['access_token']
     fn = kwargs['file_name']
+    input_path = kwargs['input_path']
     adapter = kwargs['file_type']
     uri = f'https://vmc.vmware.com/api/vmc-sizer/v5/sizing/adapter/{adapter}'
 
-    file = {'file': open(fn, 'rb')}
-    # file = {'file': (fn, open(fn, 'rb'), 'application/vnd.ms-excel', {'Expires': '0'})}
+    files=[
+        ('excelFile',(fn,open(f'{input_path}{fn}','rb'),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
+        ]
 
-    params = {'csp-auth-token': sessiontoken, "excelFile":file}
-    headers = {'Content-Type': 'multipart/form-data'}
+    # params = {'csp-auth-token': sessiontoken}
+    # response = requests.post(uri, params = params, files=files)
 
-    # response = requests.post(uri, params = params, headers = headers, data = json_data)
-
-    response = requests.post(uri, params = params, headers = headers)
+    response = requests.post(uri, files=files)
     if response.status_code == 200:
         return response.json()
     else:
@@ -87,13 +92,23 @@ def parse_excel(**kwargs):
 
 
 def get_recommendation(**kwargs):
-    sessiontoken = kwargs['access_token']
-    uri = f'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation'
+    # sessiontoken = kwargs['access_token']
     json_data = kwargs['json_data']
 
-    params = {'csp-auth-token': sessiontoken}
-    headers = {'Content-Type': 'multipart/form-data'}
-    response = requests.post(uri, params = params, headers = headers, data = json_data)
+    if kwargs['vp'] is not None:
+        vp = kwargs['vp']
+    else:
+        vp = True
+
+    if vp is True:
+        uri = 'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=true'
+    else:
+        uri = 'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=false'
+
+    # my_header = {'Content-Type': 'application/json', 'csp-auth-token': sessiontoken}
+
+    my_header = {'Content-Type': 'application/json'}
+    response = requests.post(uri, headers = my_header, data = json_data)
     if response.status_code == 200:
         return response.json()
     else:

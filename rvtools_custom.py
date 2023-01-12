@@ -2,18 +2,18 @@
 import pandas as pd
 
 def rvtools_conversion(**kwargs):
-
+    input_path = kwargs['input_path']
     file_name = kwargs['file_name'] 
-    scope = kwargs['scope']
-    cap = kwargs['cap']
 
-    excel_vmdata_df = pd.read_excel(file_name, sheet_name = 'vInfo')
+    excel_vmdata_df = pd.read_excel(f'{input_path}{file_name}', sheet_name = 'vInfo')
 
     # specify columns to KEEP - all others will be dropped
     excel_vmdata_df.drop(excel_vmdata_df.columns.difference([
         'Cluster', 'Primary IP Address','OS according to the VMware Tools',
-        'DNS Name','Powerstate','CPUs','VM','Provisioned MiB','In Use MiB','Memory'
+        'DNS Name','Powerstate','CPUs','VM','Provisioned MB','In Use MB','Memory'
         ]), axis = 1, inplace = True)
+
+    print(excel_vmdata_df)
 
     # rename remaining columns
     excel_vmdata_df.rename(columns = {
@@ -23,8 +23,8 @@ def rvtools_conversion(**kwargs):
         'Powerstate':'power_state',
         'CPUs':'vcpu',
         'VM':'vm_name',
-        'Provisioned MiB':'vmdk_size_gb',
-        'In Use MiB':'vmdk_used_gb',
+        'Provisioned MB':'vmdk_size_gb',
+        'In Use MB':'vmdk_used_gb',
         'Memory':'vram_gb', 
         'Primary IP Address':'ip_addresses' 
         }, inplace = True)

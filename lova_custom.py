@@ -2,12 +2,10 @@
 import pandas as pd
 
 def lova_conversion(**kwargs):
-
+    input_path = kwargs['input_path']
     file_name = kwargs['file_name'] 
-    scope = kwargs['scope']
-    cap = kwargs['cap']
 
-    excel_vmdata_df = pd.read_excel(file_name, sheet_name="VMs")
+    excel_vmdata_df = pd.read_excel(f'{input_path}{file_name}', sheet_name="VMs")
 
     # specify columns to KEEP - all others will be dropped
     excel_vmdata_df.drop(excel_vmdata_df.columns.difference([
