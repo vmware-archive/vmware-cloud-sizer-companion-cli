@@ -36,9 +36,11 @@ def sizer_error_handling(fxn_response):
         print("The request can not be performed because a precondition check failed. Usually, this means that the client sent a PUT or PATCH request with an out-of-date _revision property, probably because some other client has modified the entity since it was retrieved. The client should re-fetch the entry, apply any desired changes, and re-submit the operation.")
     elif code ==500:
         print(f'Error {code}: "Internal Server Error"')
-        print('''An internal error occurred while executing the request. If the problem persists, perform diagnostic system tests, or contact your support representative.
-                It is highly likely you are seeing this because you are trying to use a modified RVTools or LiveOptics file... 
-                be sure to submit an ** unmodified ** file for parsing and recommendations.''')
+        print('''
+        An internal error occurred while executing the request. If the problem persists, perform diagnostic system tests, or contact your support representative.
+        This could be due to the use of a modified RVTools or LiveOptics file... 
+        be sure to submit an ** unmodified ** file for parsing and recommendations.
+        ''')
     elif code ==503:
         print(f'Error {code}: "Service Unavailable"')
         print("The request can not be performed because the associated resource could not be reached or is temporarily busy. Please confirm the ORG ID and SDDC ID entries in your config.ini are correct.")
