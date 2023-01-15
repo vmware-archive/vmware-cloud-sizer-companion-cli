@@ -167,33 +167,33 @@ def workload_profiles(**kwargs):
     }
     
     # build json objects for recommendation payload
-    VMInfo = {}
-    VMInfo["vmComputeInfo"] = {}
-    VMInfo["vmMemoryInfo"] = {}
-    VMInfo["vmStorageInfo"] = {}    
-    vmList = []
     workloadProfiles = []
 
     # build the sizerRequest payload, using exported files (from above) to populate the workload profiles
     for file in file_list:
+        vm_data_df = pd.read_csv(f'./output/{file}')
+
         # build the profile
         profile = {}
         profile["profileName"] = file
         profile['separateCluster'] = True
-        profile["isEnabled"]: True
-        profile["fileImportType"]: None
-        profile["metadata"]: None
+        profile["isEnabled"] = True
 
-        # build the vm list
-        vm_data_df = pd.read_csv(f'./output/{file}')
+        vmList = []
+
         for ind in vm_data_df.index:
-            # VMInfo["vmId"] = str(vm_data_df['vmId'][ind])
+            VMInfo = {}
+            VMInfo["vmComputeInfo"] = {}
+            VMInfo["vmMemoryInfo"] = {}
+            VMInfo["vmStorageInfo"] = {}   
+            VMInfo["vmId"] = str(vm_data_df['vmId'][ind])
             VMInfo["vmName"] = str(vm_data_df['vmName'][ind])
             VMInfo["vmComputeInfo"]["vCpu"] = int(vm_data_df['vCpu'][ind])
             VMInfo["vmMemoryInfo"]["vRam"] = int(vm_data_df['vRam'][ind])
             VMInfo["vmStorageInfo"]["vmdkTotal"] = int(vm_data_df['vmdkTotal'][ind])
             VMInfo["vmStorageInfo"]["vmdkUsed"] = int(vm_data_df['vmdkUsed'][ind])
             vmList.append(VMInfo)
+
         profile['vmList'] = vmList
         workloadProfiles.append(profile)
 
@@ -204,20 +204,9 @@ def workload_profiles(**kwargs):
 
     return json.dumps(sizerRequest)
 
-
-
-
 ####################################
 # code / functions for later use
 ####################################
-
-### using json_normalize with "record_path" to deconstruct a dataframe with embedded DF / dictionaries
-    # recommendation_df = pd.json_normalize(json_data['workloadProfiles'], record_path=['vmList'])
-    # recommendation_df = pd.json_normalize(json_data['workloadProfiles'])
-    # # recommendation_df = pd.read_json(json_data)
-    # print(recommendation_df)
-    # for col in recommendation_df.columns:
-    #     print(col)
 
 # import parition or performance data 
     # excel_partition_df = pd.read_excel(file_name, sheet_name="VM Disks")

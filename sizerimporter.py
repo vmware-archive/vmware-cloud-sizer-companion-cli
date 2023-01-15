@@ -8,6 +8,7 @@ import sys
 import json
 from sizer_json import parse_excel, get_recommendation #, get_access_token 
 from data_transform import lova_conversion, rvtools_conversion, workload_profiles
+from sizer_output import csv_output, excel_output, powerpoint_output, terminal_output 
 
 # from rv_custom import rv_conversion
 
@@ -21,24 +22,28 @@ def main():
     ''')
 
     # Define arguments to manage file handling.
-    ap.add_argument("-a", "--action", choices = ["default", "custom", "view"], default = "default", type=str.lower, help = "Action to take - default: use the Sizer to parse a LiveOptics / RVTools file, use the custom profiles this scripts builds, just get an overview of the environment.")
+    ap.add_argument("-a", "--action", choices = ["default", "custom", "validate"], default = "default", type=str.lower, required = True, help = '''
+    Action to take:
+    default - upload a LiveOptics / RVTools file and immediately receive a sizing recommendation with no transformation of data
+    custom - transform the data prior to a recommendation - e.g. maintain existing cluster mappings, 
+    validate - ingest the file and display the ingested VM inventory.  Used for a quick look at the data.
+    ''')
     ap.add_argument("-ct", "--cloud_type", required=True, choices=['VMC_ON_AWS', 'GCVE'], default = "VMC_ON_AWS", type=str.upper, help="Which cloud platform are you sizing for?")
     ap.add_argument("-f", "--file_name", required=True, help="The file containing the VM inventory to be imported.")
     ap.add_argument("-i", "--input", required=True, choices=['rv-tools', 'live-optics', 'movere'], type=str.lower, help="Which tool completed the data collection, RVTools, Live Optics, or Movere?")
 
-
     # Define arguments to alter how results are shown.
     ap.add_argument("-logs", "--calculation_logs", action= "store_true", help="Alters how recommendation results are shown. Use to show calculation logs. Default is False - results will not, by default, show calculation logs.")
-    ap.add_argument("-novp", "--novm_placement", action= "store_false", help="Alters how recommendation results are shown. Use to show vm placement. Default is True - results will, by default, include VM placement data.")
     ap.add_argument("-o", "--output", choices = ["csv", "excel", "powerpoint", "terminal"], default = "terminal", type=str.lower, help="Alters how recommendation results are shown. Output to Excel file, CSV file, PowerPoint file, or terminal (on screen).")
 
-
     # Define arguments to filter data sent to file adapter for parsing.
-    ap.add_argument('-c', "--capacity",  choices = ["configured", "used"], required = True, type=str.lower, help = "Filters data sent for parsing. Use to specify whether to use VMDK configured storage, or only that utilized by the guest.")
-    ap.add_argument('-s', "--scope",  choices = ["all", "powered on"], required = True, type=str.lower, help = "Filters data sent for parsing. Use to specify whether to include all VM, or only those powered on.")
+    # Note these options are not currently used.
+    ap.add_argument('-c', "--capacity",  choices = ["configured", "used"], type=str.lower, help = "Filters data sent for parsing. Use to specify whether to use VMDK configured storage, or only that utilized by the guest.")
+    ap.add_argument('-s', "--scope",  choices = ["all", "powered on"], type=str.lower, help = "Filters data sent for parsing. Use to specify whether to include all VM, or only those powered on.")
     ap.add_argument('-sus', '--suspended', action = 'store_true', help = "Filters data sent for parsing. Use to specify the parser should include suspended virtual machines.")
 
     # Define arguments to transform data before asking for recommendation.
+    ap.add_argument("-novp", "--novm_placement", action= "store_false", help="Alters how recommendation results are shown. Use to show vm placement. Default is True - results will, by default, include VM placement data.")
     ap.add_argument('-pc', '--profile_config', choices=["clusters", "virtual_datacenter", "resource_pools", "folders"], type=str.lower, help = "Transforms data sent for recommendation.  Use to specify to create workload profiles based on the selected grouping.  Note that grouping by resource pool or folder is only available with RVTools data.")
 
     # currently access to sizer is ungated. If token is necessary, uncomment this argument as well as the token section below.
@@ -68,9 +73,12 @@ def main():
 
     # create arguments for recommendation
     ct = args.cloud_type
-    cl = args.calculation_logs
     vp = args.novm_placement
     profile_config = args.profile_config
+
+    # create arguments for output options
+    cl = args.calculation_logs
+    output = args.output
 
     if profile_config is not None:
         if ft == "live-optics" and (profile_config == "resource_pools" or profile_config == "folders"):
@@ -121,7 +129,7 @@ def main():
                 print("Something went wrong.  Please check your syntax and try again.")
                 sys.exit(1)
 
-        case "view":
+        case "validate":
             print("Getting overview of environment. Only file type, input path and input file name will be used.")
             view_params = {"input_path":input_path, "file_name":fn}
             
@@ -153,11 +161,27 @@ def main():
 
     calcs = recommendation["calculationLog"]
     del recommendation["calculationLog"]
-    print(json.dumps(recommendation, indent = 4))
 
-    # print calculation logs if user
-    if cl is True:
-        print(calcs)
+    output_params = {"recommendation":recommendation, "calcs":calcs,"cl":cl}
+    match output:
+        case "csv":
+            print("Exporting recommendation to CSV.")
+            print()
+            print("enabled in a future release.")
+
+        case "excel":
+            print("Exporting recommendation to Excel.")
+            print()
+            print("enabled in a future release.")
+
+        case "powerpoint":
+            print("Exporting recommendation to PowerPoint.")
+            print()
+            print("enabled in a future release.")
+
+        case "terminal":
+            print("Exporting recommendation to terminal.")
+            terminal_output(**output_params)
 
 if __name__ == "__main__":
     main()
