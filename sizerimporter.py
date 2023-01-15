@@ -8,7 +8,7 @@ import sys
 import json
 from sizer_json import parse_excel, get_recommendation #, get_access_token 
 from data_transform import lova_conversion, rvtools_conversion, workload_profiles
-from sizer_output import csv_output, excel_output, powerpoint_output, terminal_output 
+from sizer_output import recommendation_transformer, csv_output, excel_output, powerpoint_output, terminal_output 
 
 # from rv_custom import rv_conversion
 
@@ -152,17 +152,18 @@ def main():
     rec_params['vp'] = vp
     rec_params["json_data"] = recommendation_payload
 
-    recommendation = get_recommendation(**rec_params)
-    if recommendation is None:
+    json_raw = get_recommendation(**rec_params)
+    if json_raw is None:
         print("Something went wrong.  Please check your syntax and try again.")
         sys.exit(1)
     else:
         pass
 
-    calcs = recommendation["calculationLog"]
-    del recommendation["calculationLog"]
+    calcs = json_raw["calculationLog"]
+    del json_raw["calculationLog"]
 
-    output_params = {"recommendation":recommendation, "calcs":calcs,"cl":cl}
+    output_json = recommendation_transformer(json_raw)
+    output_params = {"recommendation":output_json, "calcs":calcs,"cl":cl}
     match output:
         case "csv":
             print("Exporting recommendation to CSV.")
