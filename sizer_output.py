@@ -5,7 +5,8 @@ from pandas import json_normalize
 
 def recommendation_transformer(json_data):
     # create dict for SDDC overview
-    overview_df = json_data['sddcList'][0]['clusterList']['sazClusters']['hostBreakupList'][0]
+    overview_df = pd.json_normalize(json_data['sddcList'][0]['clusterList']['sazClusters']['hostBreakupList'][0])
+    overview_df = overview_df.transpose()
 
     #create array objects to be returned
     cluster_json = {}
@@ -60,6 +61,8 @@ def terminal_output(**kwargs):
 
     print()
     print(overview)
+    # for i, j in overview.items():
+    #     print(f'{i}                    {j}')
 
     for id, cluster in cluster_json.items():
         print(f'\n\n{id}\n', cluster)
