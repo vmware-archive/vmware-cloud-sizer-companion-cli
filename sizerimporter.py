@@ -8,7 +8,7 @@ import requests
 import sys
 import json
 from sizer_json import parse_excel, get_recommendation #, get_access_token 
-from data_transform import lova_conversion, rvtools_conversion, workload_profiles
+from data_transform import data_describe, lova_conversion, rvtools_conversion, workload_profiles
 from sizer_output import recommendation_transformer, csv_output, excel_output, powerpoint_output, terminal_output 
 
 # from rv_custom import rv_conversion
@@ -30,7 +30,7 @@ def main():
                     Next, based on the arguments provided at the command line, the script will submit the data to receive a recommendation. \n\n
                     ''')
 
-    ap.add_argument("-a", "--action", choices = ["default", "custom", "view_only"], default = "view_only", type=str.lower, required = True, help = '''
+    ap.add_argument("-a", "--action", choices = ["default", "custom", "pdf", "view_only"], default = "view_only", type=str.lower, required = True, help = '''
     Action to take:
     default - upload a LiveOptics / RVTools file and immediately receive a sizing recommendation with no transformation of data
     custom - transform the data prior to a recommendation - e.g. maintain existing cluster mappings, 
@@ -149,7 +149,7 @@ def main():
                 vm_data = rvtools_conversion(**view_params)
 
             if vm_data is not None:
-                print(vm_data)
+                data_describe(vm_data)
             else:
                 print()
                 print("Something went wrong.  Please check your syntax and try again.")
