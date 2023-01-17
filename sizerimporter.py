@@ -4,7 +4,6 @@
 
 import argparse
 from argparse import SUPPRESS
-import requests
 import sys
 import json
 from sizer_json import parse_excel, get_pdf, get_recommendation #, get_access_token 
@@ -42,7 +41,7 @@ def main():
     file_hander.add_argument("-ft", "--file_type", required=True, choices=['rv-tools', 'live-optics'], type=str.lower, help="Which tool completed the data collection? (choices: %(choices)s) ", metavar='')
 
     preferences = ap.add_argument_group('Sizer preferences', "Define arguments to manage how recommendation is calculated.")
-    preferences.add_argument("-ct", "--cloud_type", required=True, choices=['VMC_ON_AWS', 'GCVE'], default = "VMC_ON_AWS", type=str.upper, help="Which cloud platform are you sizing for? (choices: %(choices)s) (default: %(default)s)", metavar='')
+    preferences.add_argument("-ct", "--cloud_type", choices=['VMC_ON_AWS', 'GCVE'], default = "VMC_ON_AWS", type=str.upper, help="Which cloud platform are you sizing for? (choices: %(choices)s) (default: %(default)s)", metavar='')
     preferences.add_argument("-novp", "--novm_placement", action= "store_false", help="Use to show vm placement. Default is True - results will, by default, include VM placement data.")
     # preferences.add_argument('-c', "--capacity",  choices = ["configured", "used"], type=str.lower, help = "Use to specify whether to use VMDK configured storage, or only that utilized by the guest. (choices: %(choices)s) ", metavar='')
     # preferences.add_argument('-s', "--scope",  choices = ["all", "powered on"], type=str.lower, help = "Use to specify whether to include all VM, or only those powered on. (choices: %(choices)s) ", metavar='')
@@ -184,7 +183,9 @@ def main():
             print("Exporting recommendation to PDF.")
             print()
             pdf_content = get_pdf(**rec_params)
-            pdf_output(pdf_content)
+            file_name = pdf_output(pdf_content)
+            if file_name is None:
+                pass
 
         case "ppt":
             print("Exporting recommendation to PowerPoint.")
@@ -198,6 +199,9 @@ def main():
 
     terminal_output(**output_params)
 
+    if file_name is not None:
+        print("\nYou can find all output saved in the '/output' directory.")
+        print(f'\nYour file has been saved as {file_name}.')
 
 if __name__ == "__main__":
     main()

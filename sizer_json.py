@@ -116,6 +116,7 @@ def get_pdf(**kwargs):
     else:
         sizer_error_handling(response)
 
+
 def get_recommendation(**kwargs):
     # sessiontoken = kwargs['access_token']
     json_data = kwargs['json_data']
