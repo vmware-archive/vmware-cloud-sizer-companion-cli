@@ -48,7 +48,7 @@ def excel_output(**kwargs):
     print("enabled in a future release.")
 
 
-def get_pdf(pdf_content):
+def pdf_output(pdf_content):
     timestr = time.strftime("%Y%m%d-%H%M%S")
     with open(f'output/VMC_Sizer_report_{timestr}.pdf', 'wb') as f:
         f.write(pdf_content)
