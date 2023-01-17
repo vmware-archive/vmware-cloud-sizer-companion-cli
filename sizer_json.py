@@ -93,7 +93,7 @@ def parse_excel(**kwargs):
         sizer_error_handling(response)
 
 
-def pdf(**kwargs):
+def get_pdf(**kwargs):
     # sessiontoken = kwargs['access_token']
     json_data = kwargs['json_data']
 
@@ -112,7 +112,7 @@ def pdf(**kwargs):
     my_header = {'Content-Type': 'application/json', 'Accept':'application/pdf'}
     response = requests.post(uri, headers = my_header, data = json_data)
     if response.status_code == 200:
-        return response.content()
+        return response.content
     else:
         sizer_error_handling(response)
 

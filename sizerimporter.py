@@ -7,9 +7,9 @@ from argparse import SUPPRESS
 import requests
 import sys
 import json
-from sizer_json import parse_excel, get_recommendation #, get_access_token 
-from data_transform import lova_conversion, rvtools_conversion, workload_profiles
-from sizer_output import recommendation_transformer, csv_output, excel_output, powerpoint_output, terminal_output 
+from sizer_json import parse_excel, get_pdf, get_recommendation #, get_access_token 
+from data_transform import data_describe, lova_conversion, rvtools_conversion, workload_profiles
+from sizer_output import recommendation_transformer, csv_output, excel_output, pdf_output, powerpoint_output, terminal_output 
 
 # from rv_custom import rv_conversion
 
@@ -54,7 +54,7 @@ def main():
 
     output_group = ap.add_argument_group('Output Format', "Define arguments to alter how results are shown.")
     output_group.add_argument("-logs", "--calculation_logs", action= "store_true", help="Use to show calculation logs. Default is False - results will not, by default, show calculation logs.")
-    output_group.add_argument("-of", "--output_format", choices=["csv","Excel","pdf","PowerPoint", "terminal"], help="Use to show calculation logs.  (choices: %(choices)s) ", metavar='')
+    output_group.add_argument("-of", "--output_format", choices=["csv", "pdf", "ppt","xls"], help="Select output format Default is none.  (choices: %(choices)s) ", metavar='')
 
     # currently access to sizer is ungated. If token is necessary, uncomment this argument as well as the token section below.
     # ap.add_argument("-rt", "--refresh_token", required=False, help="The CSP API refresh token")
@@ -149,7 +149,7 @@ def main():
                 vm_data = rvtools_conversion(**view_params)
 
             if vm_data is not None:
-                print(vm_data)
+                data_describe(vm_data)
             else:
                 print()
                 print("Something went wrong.  Please check your syntax and try again.")
@@ -180,19 +180,24 @@ def main():
             print()
             print("enabled in a future release.")
 
-        case "excel":
-            print("Exporting recommendation to Excel.")
+        case "pdf":
+            print("Exporting recommendation to PDF.")
             print()
-            print("enabled in a future release.")
+            pdf_content = get_pdf(**rec_params)
+            pdf_output(pdf_content)
 
-        case "powerpoint":
+        case "ppt":
             print("Exporting recommendation to PowerPoint.")
             print()
             print("enabled in a future release.")
 
-        case "terminal":
-            print("Exporting recommendation to terminal.")
-            terminal_output(**output_params)
+        case "xls":
+            print("Exporting recommendation to Excel.")
+            print()
+            print("enabled in a future release.")
+
+    terminal_output(**output_params)
+
 
 if __name__ == "__main__":
     main()

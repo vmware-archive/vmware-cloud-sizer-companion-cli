@@ -4,6 +4,17 @@ import pandas as pd
 from pandas import json_normalize
 
 
+def data_describe(vm_data):
+    vm_data_df = pd.DataFrame(vm_data)
+    print(f'\n{vm_data_df}')
+    print(f'\nTotal VM: {vm_data_df.vmName.count()}')
+    print(f'\nTotal Clusters: {vm_data_df.cluster.nunique()}')
+    print(f'\nTotal vCPU: {vm_data_df.vCpu.sum()}')
+    print(f'\nTotal vRAM: {vm_data_df.vRam.sum()}')
+    print(f'\nTotal used VMDK: {vm_data_df.vmdkUsed.sum()}')
+    print(f'\nTotal provisioned VMDK: {vm_data_df.vmdkTotal.sum()}')
+    print(f'\n{vm_data_df.describe()}')
+
 def lova_conversion(**kwargs):
     input_path = kwargs['input_path']
     file_name = kwargs['file_name'] 
