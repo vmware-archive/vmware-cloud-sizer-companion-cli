@@ -93,6 +93,29 @@ def parse_excel(**kwargs):
         sizer_error_handling(response)
 
 
+def pdf(**kwargs):
+    # sessiontoken = kwargs['access_token']
+    json_data = kwargs['json_data']
+
+    if kwargs['vp'] is not None:
+        vp = kwargs['vp']
+    else:
+        vp = True
+
+    if vp is True:
+        uri = 'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=true'
+    else:
+        uri = 'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=false'
+
+    # my_header = {'Content-Type': 'application/json', 'csp-auth-token': sessiontoken}
+
+    my_header = {'Content-Type': 'application/json', 'Accept':'application/pdf'}
+    response = requests.post(uri, headers = my_header, data = json_data)
+    if response.status_code == 200:
+        return response.content()
+    else:
+        sizer_error_handling(response)
+
 def get_recommendation(**kwargs):
     # sessiontoken = kwargs['access_token']
     json_data = kwargs['json_data']

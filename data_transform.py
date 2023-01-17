@@ -90,9 +90,9 @@ def rvtools_conversion(**kwargs):
 def workload_profiles(**kwargs):
     vm_data_df = kwargs["vm_data"]
     ct = kwargs["ct"]
-    scope = kwargs["scope"]
-    cap = kwargs["cap"]
-    susvm = kwargs["susvm"]
+    # scope = kwargs["scope"]
+    # cap = kwargs["cap"]
+    # susvm = kwargs["susvm"]
     profile_config = kwargs["profile_config"]
 
     #create list for storing file names
