@@ -2,6 +2,7 @@
 import json
 import pandas as pd
 from pandas import json_normalize
+import time
 
 def recommendation_transformer(json_data):
     # create dict for SDDC overview
@@ -45,6 +46,12 @@ def csv_output(**kwargs):
 def excel_output(**kwargs):
     print()
     print("enabled in a future release.")
+
+
+def get_pdf(pdf_content):
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    with open(f'output/VMC_Sizer_report_{timestr}.pdf', 'wb') as f:
+        f.write(pdf_content)
 
 
 def powerpoint_output(**kwargs):
