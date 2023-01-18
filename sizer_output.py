@@ -70,8 +70,6 @@ def terminal_output(**kwargs):
 
     print()
     print(overview)
-    # for i, j in overview.items():
-    #     print(f'{i}                    {j}')
 
     for id, cluster in cluster_json.items():
         print(f'\n\n{id}\n', cluster)

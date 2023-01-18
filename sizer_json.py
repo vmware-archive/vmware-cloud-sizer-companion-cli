@@ -50,7 +50,7 @@ def sizer_error_handling(fxn_response):
         json_response = fxn_response.json()
         if 'error_message' in json_response:
             print(json_response['error_message'])
-        print("See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#server_error_responses for more information on HTML error codes.")
+        print("See https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml for more information on HTML error codes.")
         print(fxn_response)
     except:
         print("No additional information in the error response.")
@@ -124,7 +124,7 @@ def get_recommendation(**kwargs):
     if kwargs['vp'] is not None:
         vp = kwargs['vp']
     else:
-        vp = True
+        vp = False
 
     if vp is True:
         uri = 'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=true'
