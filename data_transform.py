@@ -15,6 +15,7 @@ def data_describe(vm_data):
     print(f'\nTotal provisioned VMDK: {vm_data_df.vmdkTotal.sum()}')
     print(f'\n{vm_data_df.describe()}')
 
+
 def lova_conversion(**kwargs):
     input_path = kwargs['input_path']
     file_name = kwargs['file_name'] 
@@ -106,24 +107,43 @@ def workload_profiles(**kwargs):
     # susvm = kwargs["susvm"]
     profile_config = kwargs["profile_config"]
 
+    if kwargs['keep_list'] is not None:
+        keep_list = kwargs['keep_list']
+
     #create list for storing file names
     file_list = []
+    output_path = './output'
 
     match profile_config:
         case "clusters":
             print("Creating workload profiles by cluster.")
             cluster_profiles = vm_data_df.groupby('cluster')
             # save resulting dataframes as csv files 
-            output_path = './output'
             for cluster, cluster_df in cluster_profiles:
                 cluster_df.to_csv(f'{output_path}/cluster_{cluster}.csv')
                 file_list.append(f'cluster_{cluster}.csv')
     
+        case "custom_clusters":
+            print("Creating custom cluster workload profiles.")
+            cluster_profiles = vm_data_df.groupby('cluster')
+            print(cluster_profiles.groups.keys())
+
+            # for list of clusters to keep, export to csv
+            for cluster, cluster_df in cluster_profiles:
+                if cluster in keep_list:
+                    cluster_df.to_csv(f'{output_path}/cluster_{cluster}.csv')
+                    file_list.append(f'cluster_{cluster}.csv')
+
+            # if desired in original DF, drop rows for exported clusters
+            if kwargs['include_remaining'] is True:
+                vm_data_df_trimmed = vm_data_df[vm_data_df.cluster.isin(keep_list) == False]
+                vm_data_df_trimmed.to_csv(f'{output_path}/cluster_remainder.csv')
+                file_list.append('cluster_remainder.csv')
+
         case "virtual datacenter":
             print("Creating workload profiles by virtual data center.")
             vdc_profiles = vm_data_df.groupby('virtualDatacenter')
             # save resulting dataframes as csv files 
-            output_path = './output'
             for datacenter, datacenter_df in vdc_profiles:
                 datacenter_df.to_csv(f'{output_path}/vdc_{datacenter}.csv')
                 file_list.append(f'cluster_{datacenter}.csv')
@@ -132,7 +152,6 @@ def workload_profiles(**kwargs):
             print("Creating workload profiles by resource pools.")
             rp_profiles = vm_data_df.groupby('resourcePool')
             # save resulting dataframes as csv files 
-            output_path = './output'
             for rp, rp_df in rp_profiles:
                 rp_df.to_csv(f'{output_path}/rp_{rp}.csv')
                 file_list.append(f'cluster_{rp}.csv')
@@ -141,7 +160,6 @@ def workload_profiles(**kwargs):
             print("Creating workload profiles by folders.")
             folder_profiles = vm_data_df.groupby('vmFolder')
             # save resulting dataframes as csv files 
-            output_path = './output'
             for folder, folder_df in folder_profiles:
                 folder_df.to_csv(f'{output_path}/vmfolder_{folder}.csv')
                 file_list.append(f'cluster_{folder}.csv')

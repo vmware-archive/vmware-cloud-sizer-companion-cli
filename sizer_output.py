@@ -82,3 +82,6 @@ def terminal_output(**kwargs):
     # print calculation logs if user
     if logs is True:
         print(calcs)
+    
+    print("\nAll output files are saved in the '/output' directory.")
+
