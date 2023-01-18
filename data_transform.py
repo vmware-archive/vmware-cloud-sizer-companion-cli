@@ -8,6 +8,8 @@ def data_describe(vm_data):
     vm_data_df = pd.DataFrame(vm_data)
     print(f'\n{vm_data_df}')
     print(f'\nTotal VM: {vm_data_df.vmName.count()}')
+    print("\nVM Power States:")
+    print(vm_data_df['vmState'].value_counts())
     print(f'\nTotal Clusters: {vm_data_df.cluster.nunique()}')
     print(f'\nTotal vCPU: {vm_data_df.vCpu.sum()}')
     print(f'\nTotal vRAM: {vm_data_df.vRam.sum()}')
@@ -25,7 +27,7 @@ def lova_conversion(**kwargs):
     # specify columns to KEEP - all others will be dropped
     vmdata_df.drop(vmdata_df.columns.difference([
         'Cluster','Datacenter','Guest IP1','Guest IP2','Guest IP3','Guest IP4','VM OS',
-        'Guest Hostname', 'IsRunning', 'Virtual CPU', 'VM Name', 'Virtual Disk Size (MB)',
+        'Guest Hostname', 'Power State', 'Virtual CPU', 'VM Name', 'Virtual Disk Size (MB)',
         'Virtual Disk Used (MB)', 'Provisioned Memory (MB)', 'Consumed Memory (MB)', 'MOB ID'
         ]), axis=1, inplace=True)
 
@@ -35,7 +37,7 @@ def lova_conversion(**kwargs):
         'VM Name':'vmName',
         'VM OS':'os',
         'Guest Hostname':'os_name',
-        'IsRunning':'vmState',
+        'Power State':'vmState',
         'Virtual CPU':'vCpu',
         'Provisioned Memory (MB)':'vRam',
         'Virtual Disk Size (MB)':'vmdkTotal',
@@ -102,10 +104,18 @@ def rvtools_conversion(**kwargs):
 def workload_profiles(**kwargs):
     vm_data_df = kwargs["vm_data"]
     ct = kwargs["ct"]
+    power_state = kwargs['power_state']
     # scope = kwargs["scope"]
     # cap = kwargs["cap"]
     # susvm = kwargs["susvm"]
     profile_config = kwargs["profile_config"]
+
+    if power_state == "p":
+        vm_data_df = vm_data_df[vm_data_df.vmState == "poweredOn"]
+    elif power_state == "ps":
+        vm_data_df = vm_data_df[vm_data_df.vmState != "poweredOff"]
+    else:
+        pass
 
     if kwargs['keep_list'] is not None:
         keep_list = kwargs['keep_list']
@@ -124,9 +134,11 @@ def workload_profiles(**kwargs):
                 file_list.append(f'cluster_{cluster}.csv')
     
         case "custom_clusters":
+            if keep_list is None:
+                print('When selecting custom clusters, you must use --keep_list to specify at least one cluster to include.')
+                sys.exit(1)
             print("Creating custom cluster workload profiles.")
             cluster_profiles = vm_data_df.groupby('cluster')
-            print(cluster_profiles.groups.keys())
 
             # for list of clusters to keep, export to csv
             for cluster, cluster_df in cluster_profiles:
@@ -135,7 +147,7 @@ def workload_profiles(**kwargs):
                     file_list.append(f'cluster_{cluster}.csv')
 
             # if desired in original DF, drop rows for exported clusters
-            if kwargs['include_remaining'] is True:
+            if kwargs['include_remaining'] == True:
                 vm_data_df_trimmed = vm_data_df[vm_data_df.cluster.isin(keep_list) == False]
                 vm_data_df_trimmed.to_csv(f'{output_path}/cluster_remainder.csv')
                 file_list.append('cluster_remainder.csv')
