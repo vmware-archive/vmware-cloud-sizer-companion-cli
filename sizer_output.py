@@ -50,8 +50,10 @@ def excel_output(**kwargs):
 
 def pdf_output(pdf_content):
     timestr = time.strftime("%Y%m%d-%H%M%S")
-    with open(f'output/VMC_Sizer_report_{timestr}.pdf', 'wb') as f:
+    file_name = f'VMC_Sizer_report_{timestr}.pdf'
+    with open(f'output/{file_name}', 'wb') as f:
         f.write(pdf_content)
+    return file_name
 
 
 def powerpoint_output(**kwargs):
@@ -80,3 +82,6 @@ def terminal_output(**kwargs):
     # print calculation logs if user
     if logs is True:
         print(calcs)
+    
+    print("\nAll output files are saved in the '/output' directory.")
+

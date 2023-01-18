@@ -4,7 +4,6 @@
 
 import argparse
 from argparse import SUPPRESS
-import requests
 import sys
 import json
 from sizer_json import parse_excel, get_pdf, get_recommendation #, get_access_token 
@@ -42,14 +41,16 @@ def main():
     file_hander.add_argument("-ft", "--file_type", required=True, choices=['rv-tools', 'live-optics'], type=str.lower, help="Which tool completed the data collection? (choices: %(choices)s) ", metavar='')
 
     preferences = ap.add_argument_group('Sizer preferences', "Define arguments to manage how recommendation is calculated.")
-    preferences.add_argument("-ct", "--cloud_type", required=True, choices=['VMC_ON_AWS', 'GCVE'], default = "VMC_ON_AWS", type=str.upper, help="Which cloud platform are you sizing for? (choices: %(choices)s) (default: %(default)s)", metavar='')
+    preferences.add_argument("-ct", "--cloud_type", choices=['VMC_ON_AWS', 'GCVE'], default = "VMC_ON_AWS", type=str.upper, help="Which cloud platform are you sizing for? (choices: %(choices)s) (default: %(default)s)", metavar='')
     preferences.add_argument("-novp", "--novm_placement", action= "store_false", help="Use to show vm placement. Default is True - results will, by default, include VM placement data.")
     # preferences.add_argument('-c', "--capacity",  choices = ["configured", "used"], type=str.lower, help = "Use to specify whether to use VMDK configured storage, or only that utilized by the guest. (choices: %(choices)s) ", metavar='')
     # preferences.add_argument('-s', "--scope",  choices = ["all", "powered on"], type=str.lower, help = "Use to specify whether to include all VM, or only those powered on. (choices: %(choices)s) ", metavar='')
     # preferences.add_argument('-sus', '--suspended', action = 'store_true', help = "Use to specify the parser should include suspended virtual machines.")
 
     transformations = ap.add_argument_group('Transformation Options', "Define arguments to transform data in file before submitting to Sizer for recommendation.")
-    transformations.add_argument('-pc', '--profile_config', choices=["clusters"], type=str.lower, help = "Use to create workload profiles based on the selected grouping. (choices: %(choices)s)", metavar='')
+    transformations.add_argument('-pc', '--profile_config', choices=["clusters", "custom_clusters"], type=str.lower, help = "Use to create workload profiles based on the selected grouping. (choices: %(choices)s)", metavar='')
+    transformations.add_argument('-kl', '--keep_list', nargs= '+', help = "A list of objects (clusters, folders, etc) to keep if transforming data.")
+    transformations.add_argument('-ir', '--include_remaining', action= 'store_true', help= 'Use to indicate you wish to keep remaining workloads - default is to discard.')   
     # transformations.add_argument('-pc', '--profile_config', choices=["clusters", "virtual_datacenter", "resource_pools", "folders"], type=str.lower, help = "Use to create workload profiles based on the selected grouping.", metavar='')
 
     output_group = ap.add_argument_group('Output Format', "Define arguments to alter how results are shown.")
@@ -79,6 +80,8 @@ def main():
     ct = args.cloud_type
     vp = args.novm_placement
     profile_config = args.profile_config
+    keep_list = args.keep_list
+    include_remaining = args.include_remaining
 
     # create arguments for output options
     cl = args.calculation_logs
@@ -133,7 +136,7 @@ def main():
                 vm_data = rvtools_conversion(**params)
             if vm_data is not None:
                 # custom_params = {"vm_data":vm_data, "ct":ct, "scope":scope, "cap":cap, "susvm":susvm, "profile_config":profile_config}
-                custom_params = {"vm_data":vm_data, "ct":ct, "profile_config":profile_config}
+                custom_params = {"vm_data":vm_data, "ct":ct, "profile_config":profile_config, "keep_list":keep_list, "include_remaining":include_remaining}
                 recommendation_payload = workload_profiles(**custom_params)
             else:
                 print("Something went wrong.  Please check your syntax and try again.")
@@ -184,8 +187,8 @@ def main():
             print("Exporting recommendation to PDF.")
             print()
             pdf_content = get_pdf(**rec_params)
-            pdf_output(pdf_content)
-
+            file_name = pdf_output(pdf_content)
+            
         case "ppt":
             print("Exporting recommendation to PowerPoint.")
             print()
@@ -197,7 +200,6 @@ def main():
             print("enabled in a future release.")
 
     terminal_output(**output_params)
-
 
 if __name__ == "__main__":
     main()
