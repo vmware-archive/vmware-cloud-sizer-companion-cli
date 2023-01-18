@@ -135,7 +135,7 @@ def workload_profiles(**kwargs):
                     file_list.append(f'cluster_{cluster}.csv')
 
             # if desired in original DF, drop rows for exported clusters
-            if kwargs['include_remaining'] is True:
+            if kwargs['include_remaining'] == True:
                 vm_data_df_trimmed = vm_data_df[vm_data_df.cluster.isin(keep_list) == False]
                 vm_data_df_trimmed.to_csv(f'{output_path}/cluster_remainder.csv')
                 file_list.append('cluster_remainder.csv')
