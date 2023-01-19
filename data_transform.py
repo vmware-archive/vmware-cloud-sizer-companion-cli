@@ -2,6 +2,7 @@
 import json
 import pandas as pd
 from pandas import json_normalize
+import sys
 
 
 def data_describe(vm_data):
@@ -11,6 +12,7 @@ def data_describe(vm_data):
     print("\nVM Power States:")
     print(vm_data_df['vmState'].value_counts())
     print(f'\nTotal Clusters: {vm_data_df.cluster.nunique()}')
+    print(f'Cluster names: {vm_data_df.cluster.unique()}')
     print(f'\nTotal vCPU: {vm_data_df.vCpu.sum()}')
     print(f'\nTotal vRAM: {vm_data_df.vRam.sum()}')
     print(f'\nTotal used VMDK: {vm_data_df.vmdkUsed.sum()}')
@@ -117,7 +119,10 @@ def workload_profiles(**kwargs):
     else:
         pass
 
-    if kwargs['keep_list'] is not None:
+    if kwargs['keep_list'] is None and profile_config == "custom_clusters":
+        print('When selecting custom clusters, you must use --keep_list to specify at least one cluster to include.')
+        sys.exit(1)
+    else:
         keep_list = kwargs['keep_list']
 
     #create list for storing file names
@@ -134,9 +139,6 @@ def workload_profiles(**kwargs):
                 file_list.append(f'cluster_{cluster}.csv')
     
         case "custom_clusters":
-            if keep_list is None:
-                print('When selecting custom clusters, you must use --keep_list to specify at least one cluster to include.')
-                sys.exit(1)
             print("Creating custom cluster workload profiles.")
             cluster_profiles = vm_data_df.groupby('cluster')
 
@@ -179,7 +181,7 @@ def workload_profiles(**kwargs):
     # set configurations for recommendation calculations
     configurations = {
         "cloudType": ct,
-        # "sddcHostType": "AUTO",
+        # "sddcHostType": "ALL",
         "clusterType": "SAZ",
         "computeOvercommitFactor": 4,
         "cpuHeadroom": 0.15,
