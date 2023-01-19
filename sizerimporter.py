@@ -31,8 +31,8 @@ def main():
 
     ap.add_argument("-a", "--action", choices = ["default", "custom", "view_only"], default = "view_only", type=str.lower, required = True, help = '''
     Action to take:
-    default - upload a LiveOptics / RVTools file and immediately receive a sizing recommendation with no transformation of data
-    custom - transform the data prior to a recommendation - e.g. maintain existing cluster mappings, 
+    default - upload a LiveOptics / RVTools file and immediately receive a sizing recommendation with no transformation of data\n
+    custom - transform the data prior to a recommendation - e.g. maintain existing cluster mappings, \n
     view_only - ingest the file and display the ingested VM inventory.  Used for a quick look at the data.''',
     metavar='')
 
