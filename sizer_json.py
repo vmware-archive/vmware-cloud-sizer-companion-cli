@@ -131,6 +131,13 @@ def get_recommendation(**kwargs):
     else:
         uri = 'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=false'
 
+    # Staging URLs
+    # if vp is True:
+    #     uri = 'https://stg.skyscraper.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=true'
+    # else:
+    #     uri = 'https://stg.skyscraper.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=false'
+
+
     # my_header = {'Content-Type': 'application/json', 'csp-auth-token': sessiontoken}
 
     my_header = {'Content-Type': 'application/json'}
