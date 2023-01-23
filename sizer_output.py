@@ -5,6 +5,7 @@ from pandas import json_normalize
 import time
 
 def recommendation_transformer(json_data):
+    '''Extracts the data from the recommendation into discrete dataframes / arrays to be displayed on the screen.'''
     # create dict for SDDC overview
     overview_df = pd.json_normalize(json_data['sddcList'][0]['clusterList']['sazClusters']['hostBreakupList'][0])
     overview_df = overview_df.transpose()
@@ -37,6 +38,7 @@ def recommendation_transformer(json_data):
     output_array["vm_json"] = vm_json
 
     return output_array
+
 
 def csv_output(**kwargs):
     print()

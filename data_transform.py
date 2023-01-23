@@ -11,6 +11,9 @@ def data_describe(vm_data):
     print(f'\nTotal VM: {vm_data_df.vmName.count()}')
     print("\nVM Power States:")
     print(vm_data_df['vmState'].value_counts())
+    print(f'\nTotal unique operating systems: {vm_data_df.os.nunique()}')
+    for i in sorted(vm_data_df.os.unique()):
+        print(i)
     print(f'\nTotal Clusters: {vm_data_df.cluster.nunique()}')
     print(f'Cluster names: {vm_data_df.cluster.unique()}')
     print(f'\nTotal vCPU: {vm_data_df.vCpu.sum()}')
@@ -119,8 +122,8 @@ def workload_profiles(**kwargs):
     else:
         pass
 
-    if kwargs['keep_list'] is None and profile_config == "custom_clusters":
-        print('When selecting custom clusters, you must use --keep_list to specify at least one cluster to include.')
+    if kwargs['keep_list'] is None and profile_config != "clusters":
+        print('When creating workload profiles using custom clusters, guest_os. folers, etc, you must use --keep_list to specify at least one text string to search by.')
         sys.exit(1)
     else:
         keep_list = kwargs['keep_list']
@@ -132,21 +135,21 @@ def workload_profiles(**kwargs):
     match profile_config:
         case "clusters":
             print("Creating workload profiles by cluster.")
-            cluster_profiles = vm_data_df.groupby('cluster')
+            workload_profiles = vm_data_df.groupby('cluster')
             # save resulting dataframes as csv files 
-            for cluster, cluster_df in cluster_profiles:
-                cluster_df.to_csv(f'{output_path}/cluster_{cluster}.csv')
-                file_list.append(f'cluster_{cluster}.csv')
+            for profile, profile_df in workload_profiles:
+                profile_df.to_csv(f'{output_path}/cluster_{profile}.csv')
+                file_list.append(f'cluster_{profile}.csv')
     
         case "custom_clusters":
             print("Creating custom cluster workload profiles.")
-            cluster_profiles = vm_data_df.groupby('cluster')
+            workload_profiles = vm_data_df.groupby('cluster')
 
             # for list of clusters to keep, export to csv
-            for cluster, cluster_df in cluster_profiles:
-                if cluster in keep_list:
-                    cluster_df.to_csv(f'{output_path}/cluster_{cluster}.csv')
-                    file_list.append(f'cluster_{cluster}.csv')
+            for profile, profile_df in workload_profiles:
+                if profile in keep_list:
+                    profile_df.to_csv(f'{output_path}/cluster_{profile}.csv')
+                    file_list.append(f'cluster_{profile}.csv')
 
             # if desired in original DF, drop rows for exported clusters
             if kwargs['include_remaining'] == True:
@@ -154,34 +157,39 @@ def workload_profiles(**kwargs):
                 vm_data_df_trimmed.to_csv(f'{output_path}/cluster_remainder.csv')
                 file_list.append('cluster_remainder.csv')
 
-        case "virtual datacenter":
-            print("Creating workload profiles by virtual data center.")
-            vdc_profiles = vm_data_df.groupby('virtualDatacenter')
-            # save resulting dataframes as csv files 
-            for datacenter, datacenter_df in vdc_profiles:
-                datacenter_df.to_csv(f'{output_path}/vdc_{datacenter}.csv')
-                file_list.append(f'cluster_{datacenter}.csv')
+        case "guest_os":
+            print("Creating workload profiles based on GUEST OPERATING SYSTEM using text match.")
 
-        case "resource pools":
-            print("Creating workload profiles by resource pools.")
-            rp_profiles = vm_data_df.groupby('resourcePool')
-            # save resulting dataframes as csv files 
-            for rp, rp_df in rp_profiles:
-                rp_df.to_csv(f'{output_path}/rp_{rp}.csv')
-                file_list.append(f'cluster_{rp}.csv')
+            for match_string in keep_list:
+                profile_df = vm_data_df[vm_data_df['os'].str.contains(match_string)]
+                profile_df.to_csv(f'{output_path}/guest_os_{match_string}.csv')
+                file_list.append(f'guest_os_{match_string}.csv')
 
-        case "folders":
-            print("Creating workload profiles by folders.")
-            folder_profiles = vm_data_df.groupby('vmFolder')
-            # save resulting dataframes as csv files 
-            for folder, folder_df in folder_profiles:
-                folder_df.to_csv(f'{output_path}/vmfolder_{folder}.csv')
-                file_list.append(f'cluster_{folder}.csv')
+            # if desired in original DF, drop rows for exported clusters
+            if kwargs['include_remaining'] == True:
+                vm_data_df_trimmed = vm_data_df[vm_data_df.os.isin(keep_list) == False]
+                vm_data_df_trimmed.to_csv(f'{output_path}/os_remainder.csv')
+                file_list.append('os_remainder.csv')
+
+        case "vm_name":
+            print("Creating workload profiles based on VM NAME using text match.")
+
+            for match_string in keep_list:
+                profile_df = vm_data_df[vm_data_df['vmName'].str.contains(match_string)]
+                profile_df.to_csv(f'{output_path}/vmName_{match_string}.csv')
+                file_list.append(f'vmName_{match_string}.csv')
+
+            # if desired in original DF, drop rows for exported clusters
+            if kwargs['include_remaining'] == True:
+                vm_data_df_trimmed = vm_data_df[vm_data_df.vmName.isin(keep_list) == False]
+                vm_data_df_trimmed.to_csv(f'{output_path}/vmName_remainder.csv')
+                file_list.append('vmName_remainder.csv')
+
 
     # set configurations for recommendation calculations
     configurations = {
         "cloudType": ct,
-        # "sddcHostType": "ALL",
+        # "sddcHostType": "COST_OPT",
         "clusterType": "SAZ",
         "computeOvercommitFactor": 4,
         "cpuHeadroom": 0.15,
@@ -246,6 +254,7 @@ def workload_profiles(**kwargs):
         }
 
     return json.dumps(sizerRequest)
+
 
 ####################################
 # code / functions for later use
