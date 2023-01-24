@@ -165,9 +165,10 @@ def workload_profiles(**kwargs):
                 profile_df.to_csv(f'{output_path}/guest_os_{match_string}.csv')
                 file_list.append(f'guest_os_{match_string}.csv')
 
-            # if desired in original DF, drop rows for exported clusters
+            # to keep remaining workloads, export all VM NOT matching to remainder CSV
             if kwargs['include_remaining'] == True:
-                vm_data_df_trimmed = vm_data_df[vm_data_df.os.isin(keep_list) == False]
+                pattern = '|'.join(keep_list)
+                vm_data_df_trimmed = vm_data_df[~vm_data_df['os'].str.contains(pattern, case=False)]
                 vm_data_df_trimmed.to_csv(f'{output_path}/os_remainder.csv')
                 file_list.append('os_remainder.csv')
 
@@ -179,12 +180,12 @@ def workload_profiles(**kwargs):
                 profile_df.to_csv(f'{output_path}/vmName_{match_string}.csv')
                 file_list.append(f'vmName_{match_string}.csv')
 
-            # if desired in original DF, drop rows for exported clusters
+            # to keep remaining workloads, export all VM NOT matching to remainder CSV
             if kwargs['include_remaining'] == True:
-                vm_data_df_trimmed = vm_data_df[vm_data_df.vmName.isin(keep_list) == False]
+                pattern = '|'.join(keep_list)
+                vm_data_df_trimmed = vm_data_df[~vm_data_df['vmName'].str.contains(pattern, case=False)]
                 vm_data_df_trimmed.to_csv(f'{output_path}/vmName_remainder.csv')
                 file_list.append('vmName_remainder.csv')
-
 
     # set configurations for recommendation calculations
     configurations = {
