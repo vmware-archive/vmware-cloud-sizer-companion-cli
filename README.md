@@ -11,14 +11,15 @@ PyVMC was created by Tom Twyman and Chris White.  This tool can be used to help 
 ## 1.3 Features
 Current 'out of the box' capabilities include:
 * ingest either a LiveOptics or RVTools file
+* provide a quick review ("view_only") option to summarizes contents of the file
 * get a sizing recommendation for it
-* optionally create workload profiles based on current vm:cluster distribution
-* creating workload profiles based on existing clusters
-* selecting some or all existing clusters to use for sizing
+* creating workload profiles based on current vm:cluster distribution
+* include some or all existing clusters as separate workload profiles
+* filter to create workload profiles by Guest OS using test string
+* filter to create workload profiles by VM name using test string
 * including all VM, or only those powered on / suspended
 * present results on-screen
 * optionally save to PDF as well
-* provide a quick review, the "view_only" option just quickly summarizes contents of the file.
 
 
 ## 1.4 Getting Started
