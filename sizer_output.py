@@ -2,13 +2,31 @@
 import json
 import pandas as pd
 from pandas import json_normalize
+from prettytable import PrettyTable
 import time
+
+def generate_table(results):
+    """Generates a 'prettytable' using a JSON payload; automatically uses the dictionary keys in the payload as column headers."""
+    keyslist = list(results[0].keys())
+    table = PrettyTable(keyslist)
+    for dct in results:
+        table.add_row([dct.get(c, "") for c in keyslist])
+    return table
+
 
 def recommendation_transformer(json_data):
     '''Extracts the data from the recommendation into discrete dataframes / arrays to be displayed on the screen.'''
     # create dict for SDDC overview
     overview_df = pd.json_normalize(json_data['sddcList'][0]['clusterList']['sazClusters']['hostBreakupList'][0])
     overview_df = overview_df.transpose()
+
+    # extract vm exceptions
+    if 'vmExceptions' in json_data['sddcList'][0]:
+        vm_exceptions = (json_data['sddcList'][0]['vmExceptions']['vmExceptionInfo'])
+        limited_compat = (json_data['sddcList'][0]['vmExceptions']['limitedHostCompatibility'])
+    else:
+        vm_exceptions = None
+        limited_compat = None
 
     #create array objects to be returned
     cluster_json = {}
@@ -36,6 +54,8 @@ def recommendation_transformer(json_data):
     output_array["overview"] = overview_df
     output_array["cluster_json"] = cluster_json
     output_array["vm_json"] = vm_json
+    output_array['vm_exceptions'] = vm_exceptions
+    output_array['limited_compat'] = limited_compat
 
     return output_array
 
@@ -69,6 +89,8 @@ def terminal_output(**kwargs):
     overview = kwargs['recommendation']['overview']
     cluster_json =  kwargs['recommendation']['cluster_json']
     vm_json =  kwargs['recommendation']['vm_json']
+    vm_exceptions = kwargs['recommendation']['vm_exceptions']
+    limited_compat = kwargs['recommendation']['limited_compat']
 
     print()
     print(overview)
@@ -79,7 +101,17 @@ def terminal_output(**kwargs):
     for cluster, vm_list in vm_json.items():
         print(f'\n\n{cluster} virtual machines:\n', vm_list)
 
-    # print calculation logs if user
+    if vm_exceptions is not None:
+        print('\nThere are exceptions:\n')
+        table = generate_table(vm_exceptions)
+        print(table.get_string(fields=['vmName', 'exceptionReason', 'unsupportedResourceTypes', 'preferredHostType', 'chosenHostType']))
+
+    if limited_compat is not None:
+        print('\nIdentified host incompatibilities:\n')
+        table = generate_table(limited_compat)
+        print(table.get_string(fields=['vmName', 'exceptionReason', 'unsupportedResourceTypes', 'preferredHostType', 'chosenHostType']))
+
+    # print calculation logs if user desires
     if logs is True:
         print(calcs)
     

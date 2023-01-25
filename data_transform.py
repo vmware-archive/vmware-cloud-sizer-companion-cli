@@ -7,13 +7,19 @@ import sys
 
 def data_describe(vm_data):
     vm_data_df = pd.DataFrame(vm_data)
+
+    # Ensure guest OS column is cast as string to better handle blank values
+    vm_data_df['os'] = vm_data_df['os'].astype(str)
+
     print(f'\n{vm_data_df}')
     print(f'\nTotal VM: {vm_data_df.vmName.count()}')
     print("\nVM Power States:")
     print(vm_data_df['vmState'].value_counts())
     print(f'\nTotal unique operating systems: {vm_data_df.os.nunique()}')
+    print('\nGuest operating systems:')
     for i in sorted(vm_data_df.os.unique()):
-        print(i)
+        if i != 'nan':
+            print(i)
     print(f'\nTotal Clusters: {vm_data_df.cluster.nunique()}')
     print(f'Cluster names: {vm_data_df.cluster.unique()}')
     print(f'\nTotal vCPU: {vm_data_df.vCpu.sum()}')
