@@ -101,15 +101,21 @@ def terminal_output(**kwargs):
     for cluster, vm_list in vm_json.items():
         print(f'\n\n{cluster} virtual machines:\n', vm_list)
 
-    if vm_exceptions is not None:
-        print('\nThere are exceptions:\n')
+    try:
+        vm_exceptions
+        print('\nVM exceptions:\n')
         table = generate_table(vm_exceptions)
         print(table.get_string(fields=['vmName', 'exceptionReason', 'unsupportedResourceTypes', 'preferredHostType', 'chosenHostType']))
+    except:
+        print("There are no VM exceptions.")
 
-    if limited_compat is not None:
-        print('\nIdentified host incompatibilities:\n')
+    try:
+        limited_compat
+        print('\nHost incompatibilities:\n')
         table = generate_table(limited_compat)
         print(table.get_string(fields=['vmName', 'exceptionReason', 'unsupportedResourceTypes', 'preferredHostType', 'chosenHostType']))
+    except:
+        print("There are no host incompatibilities.")
 
     # print calculation logs if user desires
     if logs is True:
