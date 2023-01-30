@@ -20,24 +20,9 @@ We welcome many different types of contributions and not all of them need a Pull
 
 ## Getting started
 
-This tool is dependent on Python3 (specifically 3.10), you can find installation instructions for your operating system in the Python documentation (https://wiki.python.org/moin/BeginnersGuide/Download).
+Two tools are required in order to contribute code - You must install [Git](https://git-scm.com/downloads) and [Python](https://www.python.org/downloads/).  This tool is dependent on Python3 (specifically 3.10), you can find installation instructions for your operating system in the Python documentation (https://wiki.python.org/moin/BeginnersGuide/Download).  
 
-To contribute to code through code commits, you will need an account with Github.  
-
-## Contribution Flow
-
-This is a rough outline of what a contributor's workflow looks like:
-
-* Make a fork of the repository within your GitHub account
-* Create a topic branch in your fork from where you want to base your work
-* Make commits of logical units
-* Make sure your commit messages are with the proper format, quality and descriptiveness (see below)
-* Push your changes to the topic branch in your fork
-* Create a pull request containing that commit
-
-We follow the GitHub workflow and you can find more details on the [GitHub flow documentation](https://docs.github.com/en/get-started/quickstart/github-flow).
-
-When you navigate to the project folder, you will find a requirements.txt file that lists all your Python packages. They can all be installed by running the following command on Linux/Mac:
+After you have installed python, be sure to install dependencies.  When you navigate to the project folder, you will find a requirements.txt file that lists all your Python packages. They can all be installed by running the following command on Linux/Mac:
 
 ```pip3 install -r requirements.txt```
 
@@ -45,6 +30,32 @@ On Windows, use
 
 ```python -m pip install -r requirements.txt```
 
+You must also create a [Github](https://github.com/join) account. You need to verify your email with Github in order to contribute to this repository.
+
+# Quickstart for Contributing
+
+## Configure git to sign code with your verified name and email
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "youremail@domain.com"
+```
+
+## Download the VMware Cloud Sizer Companion CLI tool source code
+```bash
+git clone https://github.com/vmware-samples/vmware-cloud-sizer-companion-cli.git
+```
+
+Make the necessary changes and save your files. 
+```bash
+git diff
+```
+
+Commit the code and push your commit. -a commits all changed files, -s signs your commit, and -m is a commit message - a short description of your change.
+
+```bash
+git commit -a -s -m "Added prereq and git diff output to contribution page."
+git push
+```
 
 ### Pull Request Checklist
 
