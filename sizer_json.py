@@ -1,3 +1,9 @@
+# VMware Cloud Sizer Companion CLI - Cloud Sizer API module
+################################################################################
+### Copyright 2023 VMware, Inc.
+### SPDX-License-Identifier: BSD-2-Clause
+################################################################################
+
 #!/usr/bin/env python3
 import requests
 import sys

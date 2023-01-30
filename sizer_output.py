@@ -1,3 +1,9 @@
+# VMware Cloud Sizer Companion CLI - output module
+################################################################################
+### Copyright 2023 VMware, Inc.
+### SPDX-License-Identifier: BSD-2-Clause
+################################################################################
+
 #!/usr/bin/env python3
 import json
 import pandas as pd

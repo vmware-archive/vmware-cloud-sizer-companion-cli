@@ -1,3 +1,9 @@
+# VMware Cloud Sizer Companion CLI - data transformation module
+################################################################################
+### Copyright 2023 VMware, Inc.
+### SPDX-License-Identifier: BSD-2-Clause
+################################################################################
+
 #!/usr/bin/env python3
 import json
 import pandas as pd
@@ -122,9 +128,6 @@ def workload_profiles(**kwargs):
     vm_data_df = kwargs["vm_data"]
     ct = kwargs["ct"]
     power_state = kwargs['power_state']
-    # scope = kwargs["scope"]
-    # cap = kwargs["cap"]
-    # susvm = kwargs["susvm"]
     profile_config = kwargs["profile_config"]
 
     if power_state == "p":

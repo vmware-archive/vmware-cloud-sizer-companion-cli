@@ -1,3 +1,9 @@
+# VMware Cloud Sizer Companion CLI - main module
+################################################################################
+### Copyright 2023 VMware, Inc.
+### SPDX-License-Identifier: BSD-2-Clause
+################################################################################
+
 #!/usr/bin/env python3
 
 #VMC Sizer Importer for Python
@@ -50,7 +56,6 @@ def main():
     transformations.add_argument('-kl', '--keep_list', nargs= '+', help = "A list of objects (clusters, folders, etc) to keep if transforming data.")
     transformations.add_argument('-ir', '--include_remaining', action= 'store_true', help= 'Use to indicate you wish to keep remaining workloads - default is to discard.')   
     transformations.add_argument('-pc', '--profile_config', choices=["clusters", "custom_clusters", "guest_os", "vm_name"], type=str.lower, help = "Use to create workload profiles based on the selected grouping. (choices: %(choices)s)", metavar='')
-    # transformations.add_argument('-pc', '--profile_config', choices=["clusters", "virtual_datacenter", "resource_pools", "folders"], type=str.lower, help = "Use to create workload profiles based on the selected grouping.", metavar='')
 
     output_group = ap.add_argument_group('Output Format', "Define arguments to alter how results are shown.")
     output_group.add_argument("-logs", "--calculation_logs", action= "store_true", help="Use to show calculation logs. Default is False - results will not, by default, show calculation logs.")
@@ -158,6 +163,15 @@ def main():
                 sys.exit(1)
             sys.exit(0)
         
+    # final modification of parameters before requesting sizing
+    # "applianceSize": REGULAR,   LARGE,   AUTO,
+    # "cloudType" : VMC_ON_AWS, GCVE
+    # "clusterType": SAZ, MAZ, ALL
+    # "includeManagementVMs": True,
+    # "fttFtmType": AUTO_AUTO,   FTT1_RAID1,   FTT1_RAID5,   FTT2_RAID1,   FTT2_RAID6
+    # "addonsList": []
+
+
 
     # take parsed / transformed data and get recommendation.
     rec_params = {}
