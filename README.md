@@ -11,16 +11,18 @@ VMware Cloud Sizer Companion CLI was created by Tom Twyman and Chris White.  Thi
 
 ## 1.3 Features
 Current 'out of the box' capabilities include:
-* ingest either a LiveOptics or RVTools file
-* provide a quick review ("view_only") option to summarizes contents of the file
-* get a sizing recommendation for it
-* creating workload profiles based on current vm:cluster distribution
-* include some or all existing clusters as separate workload profiles
-* filter to create workload profiles by Guest OS using test string
-* filter to create workload profiles by VM name using test string
-* including all VM, or only those powered on / suspended
-* present results on-screen
-* optionally save to PDF as well
+- Ingest either a LiveOptics or RVTools file
+- Provide a quick review (“view_only”) option to summarize the environment
+- Retrieve a sizing recommendation for the environment
+- Create workload profiles based on:
+  - Current vm:cluster distribution – all clusters
+  - Current vm:cluster distribution – some clusters
+  - Guest OS based on text string filter
+  - VM name based on text string filter
+- Include all VM, or only those powered on / suspended
+- Present results on-screen
+- Identify VM exceptions or host incompatibilities
+- Optionally save to PDF as well
 
 
 ## 1.4 Getting Started
