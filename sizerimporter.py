@@ -12,7 +12,7 @@ from argparse import SUPPRESS
 import sys
 import json
 from sizer_json import parse_excel, get_pdf, get_recommendation
-from data_transform import data_describe, lova_conversion, rvtools_conversion, exclude_workloads, include_workloads, build_workload_profiles, build_recommendation_payload
+from data_transform import data_describe, lova_conversion, rvtools_conversion, ps_filter, exclude_workloads, include_workloads, build_workload_profiles, build_recommendation_payload
 from sizer_output import recommendation_transformer, csv_output, excel_output, pdf_output, powerpoint_output, terminal_output 
 
 def main():
@@ -49,14 +49,14 @@ def main():
     preferences.add_argument("-vp", "--vm_placement", action= "store_true", help="Use to show vm placement. Default is True - results will, by default does not include VM placement data.")
 
     workload_filters = ap.add_argument_group('Workload filtering options', "Define arguments to filter workloads in file before submitting to Sizer for recommendation.")
-    workload_filters.add_argument('-ef', '--exclude_filter', nargs = '+', help = 'A list of text strings used to identify workloads to exclude.')
+    workload_filters.add_argument('-exfil', '--exclude_filter', nargs = '+', help = 'A list of text strings used to identify workloads to exclude.')
     workload_filters.add_argument('-eff', '--exclude_filter_field', choices = ['cluster','os','vmName'], help = "The column/field used for exclusion filtering. (choices: %(choices)s) ", metavar='')
-    workload_filters.add_argument('-if', '--include_filter', nargs = '+', help = 'A list of text strings used to identify workloads to keep.')
+    workload_filters.add_argument('-infil', '--include_filter', nargs = '+', help = 'A list of text strings used to identify workloads to keep.')
     workload_filters.add_argument('-iff', '--include_filter_field', choices = ['cluster','os','vmName'], help = "The column/field used for inclusion filtering. (choices: %(choices)s) ", metavar='')
-    workload_filters.add_argument('-ps', "--power_state",  choices = ["a", "p", "ps"], type=str.lower, help = "Use to specify whether to include (a)ll VM, only those (p)owered on, or powered on and suspended (ps). (choices: %(choices)s) ", metavar='')
+    workload_filters.add_argument('-ps', "--power_state",  choices = ["p", "ps"], type=str.lower, help = "By default, all VM are included regardless of powere state. Use to specify whether to include only those (p)owered on, or powered on and suspended (ps). (choices: %(choices)s) ", metavar='')
 
     transformations = ap.add_argument_group('Workload profile options', "Define arguments to create workload profiles / groups before submitting to Sizer for recommendation.")
-    transformations.add_argument('-wp', '--workload_profiles', choices=["all_clusters", "custom_clusters", "guest_os", "vm_name"], type=str.lower, help = "Use to create workload profiles based on the selected grouping. (choices: %(choices)s)", metavar='')
+    transformations.add_argument('-wp', '--workload_profiles', choices=["all_clusters", "some_clusters", "guest_os", "vm_name"], type=str.lower, help = "Use to create workload profiles based on the selected grouping. (choices: %(choices)s)", metavar='')
     transformations.add_argument('-pl', '--profile_list', nargs= '+', help = "A list of text strings used to filter workloads for the creation of workload profiles.  Use '--workload_profiles' to identify the field used for grouping.")
     transformations.add_argument('-ir', '--include_remaining', action= 'store_true', help= 'Use to indicate you wish to keep remaining workloads - default is to discard.')   
 
@@ -92,6 +92,8 @@ def main():
     profile_list = args.profile_list
     include_remaining = args.include_remaining
 
+    wp_file_list = []
+
     # create arguments for output options
     cl = args.calculation_logs
     output_format = args.output_format
@@ -110,7 +112,7 @@ def main():
 
         case "custom":
             # ingest file
-            ingest_params = {"file_type":ft, "input_path":input_path, "file_name":fn}
+            ingest_params = {"file_type":ft, "input_path":input_path, "file_name":fn, "output_path":output_path}
             match ft:
                 case 'live-optics':
                     csv_file = lova_conversion(**ingest_params)
@@ -120,22 +122,34 @@ def main():
             #transform parsed data according to arguments
             if csv_file is not None:
 
-                if exclude_filter is not None and exclude_filter_field is not None:
-                    ex_filter_params = {"exclude_filter":exclude_filter, "exclude_filter_field":exclude_filter_field, "output_path":output_path, "csv_file":csv_file}
-                    csv_file = exclude_workloads(**ex_filter_params)
+                if power_state is not None:
+                    power_params = {"power_state":power_state, "output_path":output_path, "csv_file":csv_file}
+                    csv_file = ps_filter(**power_params)
                 else:
-                    print("You must specify BOTH a text string to use as a filter, AND field to filter by (vm_name, guest_os, cluster) when using an exclude filter.")
+                    pass
 
-                if include_filter is not None and include_filter_field is not None:
-                    inc_filter_params = {"include_filter":include_filter, "include_filter_field":include_filter_field, "output_path":output_path, "csv_file":csv_file}
-                    csv_file = include_workloads(**inc_filter_params)
+                if include_filter is not None:
+                    if include_filter_field is None:
+                        print("You must specify BOTH a text string to use as a filter, AND field to filter by (vm_name, guest_os, cluster) when using an include filter.")
+                    else:
+                        inc_filter_params = {"include_filter":include_filter, "include_filter_field":include_filter_field, "output_path":output_path, "csv_file":csv_file}
+                        csv_file = include_workloads(**inc_filter_params)
                 else:
-                    print("You must specify BOTH a text string to use as a filter, AND field to filter by (vm_name, guest_os, cluster) when using an include filter.")
+                    pass
                 
+                if exclude_filter is not None:
+                    if exclude_filter_field is None:
+                        print("You must specify BOTH a text string to use as a filter, AND field to filter by (vm_name, guest_os, cluster) when using an exclude filter.")
+                    else:
+                        ex_filter_params = {"exclude_filter":exclude_filter, "exclude_filter_field":exclude_filter_field, "output_path":output_path, "csv_file":csv_file}
+                        csv_file = exclude_workloads(**ex_filter_params)
+                else:
+                    pass
+
                 if workload_profiles is not None:
                     match workload_profiles:
                         case "all_clusters":
-                            profile_params = {"csv_file":csv_file, "workload_profiles":workload_profiles, "output_path":output_path}
+                            profile_params = {"csv_file":csv_file, "workload_profiles":workload_profiles, "profile_list":profile_list, "include_remaining":include_remaining, "output_path":output_path}
                             wp_file_list = build_workload_profiles(**profile_params)
 
                         case "some_clusters" | "guest_os" | "vm_name":
@@ -145,8 +159,14 @@ def main():
                             else:
                                 profile_params = {"csv_file":csv_file, "workload_profiles":workload_profiles, "profile_list":profile_list, "include_remaining":include_remaining, "output_path":output_path}
                                 wp_file_list = build_workload_profiles(**profile_params)
+                else:
+                    pass
 
-                payload_params = {"output_path":output_path, "csv_file":csv_file, "wp_file_list":wp_file_list, "cloudType":ct}
+                if len(wp_file_list) == 0:
+                    wp_file_list = [csv_file]
+                else:
+                    pass
+                payload_params = {"output_path":output_path, "ct":ct, "wp_file_list":wp_file_list, "cloudType":ct}
                 sizer_request = build_recommendation_payload(**payload_params)
             
             else:
@@ -155,15 +175,15 @@ def main():
 
         case "view_only":
             print("Getting overview of environment. Only file type, input path and input file name will be used.")
-            view_params = {"input_path":input_path, "file_name":fn}
+            view_params = {"input_path":input_path,"file_name":fn, "output_path":output_path}
             
             if ft == 'live-optics':
-                vm_data = lova_conversion(**view_params)
+                csv_file = lova_conversion(**view_params)
             elif ft == 'rv-tools':
-                vm_data = rvtools_conversion(**view_params)
+                csv_file = rvtools_conversion(**view_params)
 
-            if vm_data is not None:
-                data_describe(vm_data)
+            if csv_file is not None:
+                data_describe(output_path,csv_file)
             else:
                 print()
                 print("Something went wrong.  Please check your syntax and try again.")
