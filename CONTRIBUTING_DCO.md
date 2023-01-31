@@ -42,7 +42,7 @@ git config --global user.email "youremail@domain.com"
 
 ## Download the VMware Cloud Sizer Companion CLI tool source code
 ```bash
-git clone https://github.com/vmware-samples/vmware-cloud-sizer-companion-cli.git
+git clone [https://github.com/vmware-samples/vmware-cloud-sizer-companion-cli.git](https://github.com/vmware-samples/vmware-cloud-sizer-companion-cli.git)
 ```
 
 Make the necessary changes and save your files. 
