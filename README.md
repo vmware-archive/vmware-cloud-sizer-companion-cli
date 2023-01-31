@@ -32,7 +32,6 @@ This tool is dependent on Python3 (specifically 3.10), you can find installation
 
 ### 1.4.2 Download code
 If you know git, clone the repo with
-
 ```git clone https://github.com/vmware-samples/vmware-cloud-sizer-companion-cli.git ```
 
 
@@ -63,8 +62,6 @@ For those of you interested in getting 'under the covers,' this project is split
 * sizer_json.py - functions that call the VMware Cloud Sizer API - specifically for parsing an Excel file and obtaining a sizing recommendation.
 * data_transform.py - functions that ingest data from an Excel file (LiveOptics or RVTools), and optionally transform the data before sending it to the sizer for a recommendation
 * sizer_output.py - functions to handle the output of data
-
-
 
 ## Contributing
 
