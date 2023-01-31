@@ -1,10 +1,10 @@
+#!/usr/bin/env python3
+
 # VMware Cloud Sizer Companion CLI - class module
 ################################################################################
 ### Copyright 2023 VMware, Inc.
-### SPDX-License-Identifier: BSD-2-Clause
+### SPDX-License-Identifier: MIT License
 ################################################################################
-
-#!/usr/bin/env python3
 
 class VirtualMachine:
     def __init__(self, mob_id, vm_name, vcpu, vram_gb, vmdk_size_gb, vmdk_used_gb, os, os_name, partitions, ip_addresses, percent_cpu, percent_ram, iops, disk_throughput, net_pps, net_throughput):
