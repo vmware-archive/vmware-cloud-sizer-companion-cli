@@ -14,12 +14,14 @@ Current 'out of the box' capabilities include:
 - Ingest either a LiveOptics or RVTools file
 - Provide a quick review (“view_only”) option to summarize the environment
 - Retrieve a sizing recommendation for the environment
+- Include all VM, or only those powered on / suspended
+- Include specific workloads by VM Name, cluster, or Guest operating system
+- Exclude specific workloads by VM Name, cluster, or Guest operating system
 - Create workload profiles based on:
   - Current vm:cluster distribution – all clusters
   - Current vm:cluster distribution – some clusters
   - Guest OS based on text string filter
   - VM name based on text string filter
-- Include all VM, or only those powered on / suspended
 - Present results on-screen
 - Identify VM exceptions or host incompatibilities
 - Optionally save to PDF as well
