@@ -44,11 +44,8 @@ def lova_conversion(**kwargs):
     vmdata_df = pd.read_excel(f'{input_path}{file_name}', sheet_name="VMs")
 
     # specify columns to KEEP - all others will be dropped
-    vmdata_df.drop(vmdata_df.columns.difference([
-        'Cluster','Datacenter','Guest IP1','Guest IP2','Guest IP3','Guest IP4','VM OS',
-        'Guest Hostname', 'Power State', 'Virtual CPU', 'VM Name', 'Virtual Disk Size (MB)',
-        'Virtual Disk Used (MB)', 'Provisioned Memory (MB)', 'Consumed Memory (MB)', 'MOB ID'
-        ]), axis=1, inplace=True)
+    keep_columns = ['Cluster','Datacenter','Guest IP1','Guest IP2','Guest IP3','Guest IP4','VM OS','Guest Hostname', 'Power State', 'Virtual CPU', 'VM Name', 'Virtual Disk Size (MB)','Virtual Disk Used (MB)', 'Provisioned Memory (MB)', 'Consumed Memory (MB)', 'MOB ID']
+    vmdata_df = vmdata_df.filter(items= keep_columns, axis= 1)
 
     # rename remaining columns
     vmdata_df.rename(columns = {
@@ -95,10 +92,14 @@ def rvtools_conversion(**kwargs):
     vmdata_df = pd.read_excel(f'{input_path}{file_name}', sheet_name = 'vInfo')
 
     # specify columns to KEEP - all others will be dropped
-    vmdata_df.drop(vmdata_df.columns.difference([
-        'VM ID','Cluster', 'Datacenter','Primary IP Address','OS according to the VMware Tools',
-        'DNS Name','Powerstate','CPUs','VM','Provisioned MB','In Use MB','Memory', 'Resource pool', 'Folder'
-        ]), axis = 1, inplace = True)
+    keep_columns = ['VM ID','Cluster', 'Datacenter','Primary IP Address','OS according to the VMware Tools', 'DNS Name','Powerstate','CPUs','VM','Memory', 'Resource pool', 'Folder']
+
+    if 'Provisioned MiB' in vmdata_df:
+        keep_columns.extend(['Provisioned MiB', 'In Use MiB'])
+    else:
+        keep_columns.extend(['Provisioned MB', 'In Use MB'])
+
+    vmdata_df = vmdata_df.filter(items= keep_columns, axis= 1)
 
     # rename remaining columns
     vmdata_df.rename(columns = {
@@ -109,8 +110,6 @@ def rvtools_conversion(**kwargs):
         'Powerstate':'vmState',
         'CPUs':'vCpu',
         'Memory':'vRam', 
-        'Provisioned MB':'vmdkTotal',
-        'In Use MB':'vmdkUsed',
         'Primary IP Address':'ip_addresses',
         'Folder':'vmFolder',
         'Resource pool':'resourcePool',
@@ -118,6 +117,11 @@ def rvtools_conversion(**kwargs):
         'Datacenter':'virtualDatacenter'
         }, inplace = True)
 
+    if 'Provisioned MiB' in vmdata_df:
+        vmdata_df.rename(columns ={'Provisioned MiB':'vmdkTotal','In Use MiB':'vmdkUsed'}, inplace = True)
+    else:
+        vmdata_df.rename(columns ={'Provisioned MB':'vmdkTotal','In Use MB':'vmdkUsed'}, inplace = True)
+        
     fillna_values = {"ip_addresses": "no ip", "os": "none specified"}
     vmdata_df.fillna(value=fillna_values, inplace = True)
 
