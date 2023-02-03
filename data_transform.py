@@ -66,10 +66,6 @@ def lova_conversion(**kwargs):
     vmdata_df.fillna(value=fillna_values, inplace = True)
 
     # aggregate IP addresses into one column
-    # vmdata_df["Guest IP1"].fillna("no ip", inplace = True)
-    # vmdata_df["Guest IP2"].fillna("no ip", inplace = True)
-    # vmdata_df["Guest IP3"].fillna("no ip", inplace = True)
-    # vmdata_df["Guest IP4"].fillna("no ip", inplace = True)
     vmdata_df['ip_addresses'] = vmdata_df['Guest IP1'].map(str)+ ', ' + vmdata_df['Guest IP2'].map(str)+ ', ' + vmdata_df['Guest IP3'].map(str)+ ', ' + vmdata_df['Guest IP4'].map(str)
     vmdata_df['ip_addresses'] = vmdata_df.ip_addresses.str.replace(', no ip' , '')
     vmdata_df.drop(['Guest IP1', 'Guest IP2', 'Guest IP3', 'Guest IP4'], axis=1, inplace=True)
@@ -94,6 +90,7 @@ def rvtools_conversion(**kwargs):
     # specify columns to KEEP - all others will be dropped
     keep_columns = ['VM ID','Cluster', 'Datacenter','Primary IP Address','OS according to the VMware Tools', 'DNS Name','Powerstate','CPUs','VM','Memory', 'Resource pool', 'Folder']
 
+    # Different versions of RVTools use either "MB" or "MiB" for storage; check for presence and include appropriate columns
     if 'Provisioned MiB' in vmdata_df:
         keep_columns.extend(['Provisioned MiB', 'In Use MiB'])
     else:
