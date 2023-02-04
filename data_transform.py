@@ -225,13 +225,14 @@ def build_workload_profiles(**kwargs):
                 profile_df = vm_data_df[vm_data_df['os'].str.contains(match_string)]
                 profile_df.to_csv(f'{output_path}5_guest_os_{match_string}.csv')
                 wp_file_list.append(f'5_guest_os_{match_string}.csv')
-
+                
             # to keep remaining workloads, export all VM NOT matching to remainder CSV
             if kwargs['include_remaining'] == True:
                 pattern = '|'.join(profile_list)
                 vm_data_df_trimmed = vm_data_df[~vm_data_df['os'].str.contains(pattern, case=False)]
                 vm_data_df_trimmed.to_csv(f'{output_path}5_os_remainder.csv')
                 wp_file_list.append('5_os_remainder.csv')
+
             return wp_file_list
 
         case "vm_name":
