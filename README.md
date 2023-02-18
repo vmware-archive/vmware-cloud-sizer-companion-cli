@@ -55,8 +55,8 @@ This is super easy...
 - use '-h' to see the supported arguments / parameters.
 
 ### 1.5.1 Suggested Workflow
-First, run get an overview of the environment using the option, "-a view_only":
-```./sizerimporter.py -a view_only -ft rv-tools -fn rvtools_file.xlsx```
+First, run get an overview of the environment:
+```./sizer-cli.py describe -ft rv-tools -fn rvtools_file.xlsx```
 
 This will give you a good review of what's in your file, as shown by the image below.
 ![Alt text](images/1_view_only.png)
@@ -64,7 +64,7 @@ This will give you a good review of what's in your file, as shown by the image b
 Next, you can add some options to your command to transform the data, or just get a recommendation.  
 
 To simply submit the file to the Sizer and get a recommendation without any filtering / changes to the data at all, simply change "view_only" to "default":
-```./sizerimporter.py -a default -ft rv-tools -fn rvtools_file.xlsx```
+```./sizer-cli.py default -ft rv-tools -fn rvtools_file.xlsx```
 
 ![Alt text](images/2_default.png)
 
@@ -81,7 +81,7 @@ In the example below, the dataset has been modified as follows:
 - exclude any VMs with either "esx" or "nsx" in the name
 - create a workload profile in its own cluster for any VMs identified as running "Ubuntu Linux" in one cluster
 - create a workload profile for all remaining VMs in a separate cluster:
-```./sizerimporter.py -a custom -ft rv-tools -fn rvtools_file.xlsx -ps p -exfil esx nsx -eff vmName -wp guest_os -pl "Ubuntu Linux" -ir```
+```./sizer-cli.py custom -ft rv-tools -fn rvtools_file.xlsx -ps p -exfil esx nsx -eff vmName -wp os -pl "Ubuntu Linux" -ir```
 
 ![Alt text](images/3_custom.png)
 

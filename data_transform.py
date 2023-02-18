@@ -219,7 +219,7 @@ def build_workload_profiles(**kwargs):
                 wp_file_list.append('5_cluster_remainder.csv')
             return wp_file_list
 
-        case "guest_os":
+        case "os":
             print("Creating workload profiles based on GUEST OPERATING SYSTEM using text match.")
             for match_string in profile_list:
                 profile_df = vm_data_df[vm_data_df['os'].str.contains(match_string)]
@@ -235,7 +235,7 @@ def build_workload_profiles(**kwargs):
 
             return wp_file_list
 
-        case "vm_name":
+        case "vmName":
             print("Creating workload profiles based on VM NAME using text match.")
 
             for match_string in profile_list:

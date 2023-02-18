@@ -126,7 +126,7 @@ def custom_import_sizing(**kwargs):
 
                 case "some_clusters" | "os" | "vmName":
                     if kwargs['profile_list'] is None:
-                        print("You must supply a list of one or more valid cluster names / guest operating systems / VM names.  Use './sizerimpoter -a view_only' for a summary of the environment, or review your file.")
+                        print("You must supply a list of one or more valid cluster names / guest operating systems / VM names.  Use './sizer-cli.py describe' for a summary of the environment, or review your file.")
                         sys.exit(1)
                     else:
                         profile_params = {"csv_file":csv_file, "workload_profiles":kwargs['workload_profiles'], "profile_list":kwargs['profile_list'], "include_remaining":kwargs['include_remaining'], "output_path":output_path}
