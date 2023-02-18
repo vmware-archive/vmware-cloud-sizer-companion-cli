@@ -51,7 +51,7 @@ No! You can simply use it interactively at the command line, or in a script.
 
 ## 1.5 Running the Script
 This is super easy...
-- run ./sizerimporter.py to see the current list of supported commands.
+- run ./sizer-cli.py to see the current list of supported commands.
 - use '-h' to see the supported arguments / parameters.
 
 ### 1.5.1 Suggested Workflow
@@ -105,7 +105,8 @@ For those of you interested in getting 'under the covers,' this project is split
 
 ![Alt text](images/pyvmcsizer.png)
 
-* sizerimporter.py - contains the _main_ function, which defines all the arguments accepted, help for the command, etc.  It also makes calls to other functions based on what arguments are passed
+* sizer-cli.py - contains the _main_ function, which defines all the arguments accepted, help for the command, etc... calls function in sizer_fxns based on argument
+* sizer_fxns.py - contains the primary functions called by the commands defined in argparse
 * sizer_json.py - functions that call the VMware Cloud Sizer API - specifically for parsing an Excel file and obtaining a sizing recommendation.
 * data_transform.py - functions that ingest data from an Excel file (LiveOptics or RVTools), and optionally transform the data before sending it to the sizer for a recommendation
 * sizer_output.py - functions to handle the output of data
