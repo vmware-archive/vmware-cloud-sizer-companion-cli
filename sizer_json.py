@@ -64,7 +64,7 @@ def sizer_error_handling(fxn_response):
     return None
 
 
-def get_access_token(rt):
+def get_access_token_api(rt):
     """ Gets the Access Token using the Refresh Token """
     params = {'api_token': rt}
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -79,7 +79,7 @@ def get_access_token(rt):
         sizer_error_handling(response)
 
 
-def parse_excel(**kwargs):
+def parse_excel_api(**kwargs):
     # sessiontoken = kwargs['access_token']
     fn = kwargs['file_name']
     input_path = kwargs['input_path']
@@ -100,7 +100,7 @@ def parse_excel(**kwargs):
         sizer_error_handling(response)
 
 
-def get_pdf(**kwargs):
+def get_pdf_api(**kwargs):
     # sessiontoken = kwargs['access_token']
     json_data = kwargs['json_data']
 
@@ -124,7 +124,7 @@ def get_pdf(**kwargs):
         sizer_error_handling(response)
 
 
-def get_recommendation(**kwargs):
+def get_recommendation_api(**kwargs):
     # sessiontoken = kwargs['access_token']
     json_data = kwargs['json_data']
 

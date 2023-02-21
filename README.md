@@ -51,12 +51,12 @@ No! You can simply use it interactively at the command line, or in a script.
 
 ## 1.5 Running the Script
 This is super easy...
-- run ./sizerimporter.py to see the current list of supported commands.
+- run ./sizer-cli.py to see the current list of supported commands.
 - use '-h' to see the supported arguments / parameters.
 
 ### 1.5.1 Suggested Workflow
-First, run get an overview of the environment using the option, "-a view_only":
-```./sizerimporter.py -a view_only -ft rv-tools -fn rvtools_file.xlsx```
+First, run get an overview of the environment:
+```./sizer-cli.py describe -ft rv-tools -fn rvtools_file.xlsx```
 
 This will give you a good review of what's in your file, as shown by the image below.
 ![Alt text](images/1_view_only.png)
@@ -64,7 +64,7 @@ This will give you a good review of what's in your file, as shown by the image b
 Next, you can add some options to your command to transform the data, or just get a recommendation.  
 
 To simply submit the file to the Sizer and get a recommendation without any filtering / changes to the data at all, simply change "view_only" to "default":
-```./sizerimporter.py -a default -ft rv-tools -fn rvtools_file.xlsx```
+```./sizer-cli.py default -ft rv-tools -fn rvtools_file.xlsx```
 
 ![Alt text](images/2_default.png)
 
@@ -81,7 +81,7 @@ In the example below, the dataset has been modified as follows:
 - exclude any VMs with either "esx" or "nsx" in the name
 - create a workload profile in its own cluster for any VMs identified as running "Ubuntu Linux" in one cluster
 - create a workload profile for all remaining VMs in a separate cluster:
-```./sizerimporter.py -a custom -ft rv-tools -fn rvtools_file.xlsx -ps p -exfil esx nsx -eff vmName -wp guest_os -pl "Ubuntu Linux" -ir```
+```./sizer-cli.py custom -ft rv-tools -fn rvtools_file.xlsx -ps p -exfil esx nsx -eff vmName -wp os -pl "Ubuntu Linux" -ir```
 
 ![Alt text](images/3_custom.png)
 
@@ -105,7 +105,8 @@ For those of you interested in getting 'under the covers,' this project is split
 
 ![Alt text](images/pyvmcsizer.png)
 
-* sizerimporter.py - contains the _main_ function, which defines all the arguments accepted, help for the command, etc.  It also makes calls to other functions based on what arguments are passed
+* sizer-cli.py - contains the _main_ function, which defines all the arguments accepted, help for the command, etc... calls function in sizer_fxns based on argument
+* sizer_fxns.py - contains the primary functions called by the commands defined in argparse
 * sizer_json.py - functions that call the VMware Cloud Sizer API - specifically for parsing an Excel file and obtaining a sizing recommendation.
 * data_transform.py - functions that ingest data from an Excel file (LiveOptics or RVTools), and optionally transform the data before sending it to the sizer for a recommendation
 * sizer_output.py - functions to handle the output of data
