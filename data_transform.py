@@ -44,11 +44,8 @@ def lova_conversion(**kwargs):
     vmdata_df = pd.read_excel(f'{input_path}{file_name}', sheet_name="VMs")
 
     # specify columns to KEEP - all others will be dropped
-    vmdata_df.drop(vmdata_df.columns.difference([
-        'Cluster','Datacenter','Guest IP1','Guest IP2','Guest IP3','Guest IP4','VM OS',
-        'Guest Hostname', 'Power State', 'Virtual CPU', 'VM Name', 'Virtual Disk Size (MB)',
-        'Virtual Disk Used (MB)', 'Provisioned Memory (MB)', 'Consumed Memory (MB)', 'MOB ID'
-        ]), axis=1, inplace=True)
+    keep_columns = ['Cluster','Datacenter','Guest IP1','Guest IP2','Guest IP3','Guest IP4','VM OS','Guest Hostname', 'Power State', 'Virtual CPU', 'VM Name', 'Virtual Disk Size (MB)','Virtual Disk Used (MB)', 'Provisioned Memory (MB)', 'Consumed Memory (MB)', 'MOB ID']
+    vmdata_df = vmdata_df.filter(items= keep_columns, axis= 1)
 
     # rename remaining columns
     vmdata_df.rename(columns = {
@@ -69,10 +66,6 @@ def lova_conversion(**kwargs):
     vmdata_df.fillna(value=fillna_values, inplace = True)
 
     # aggregate IP addresses into one column
-    # vmdata_df["Guest IP1"].fillna("no ip", inplace = True)
-    # vmdata_df["Guest IP2"].fillna("no ip", inplace = True)
-    # vmdata_df["Guest IP3"].fillna("no ip", inplace = True)
-    # vmdata_df["Guest IP4"].fillna("no ip", inplace = True)
     vmdata_df['ip_addresses'] = vmdata_df['Guest IP1'].map(str)+ ', ' + vmdata_df['Guest IP2'].map(str)+ ', ' + vmdata_df['Guest IP3'].map(str)+ ', ' + vmdata_df['Guest IP4'].map(str)
     vmdata_df['ip_addresses'] = vmdata_df.ip_addresses.str.replace(', no ip' , '')
     vmdata_df.drop(['Guest IP1', 'Guest IP2', 'Guest IP3', 'Guest IP4'], axis=1, inplace=True)
@@ -95,10 +88,15 @@ def rvtools_conversion(**kwargs):
     vmdata_df = pd.read_excel(f'{input_path}{file_name}', sheet_name = 'vInfo')
 
     # specify columns to KEEP - all others will be dropped
-    vmdata_df.drop(vmdata_df.columns.difference([
-        'VM ID','Cluster', 'Datacenter','Primary IP Address','OS according to the VMware Tools',
-        'DNS Name','Powerstate','CPUs','VM','Provisioned MB','In Use MB','Memory', 'Resource pool', 'Folder'
-        ]), axis = 1, inplace = True)
+    keep_columns = ['VM ID','Cluster', 'Datacenter','Primary IP Address','OS according to the VMware Tools', 'DNS Name','Powerstate','CPUs','VM','Memory', 'Resource pool', 'Folder']
+
+    # Different versions of RVTools use either "MB" or "MiB" for storage; check for presence and include appropriate columns
+    if 'Provisioned MiB' in vmdata_df:
+        keep_columns.extend(['Provisioned MiB', 'In Use MiB'])
+    else:
+        keep_columns.extend(['Provisioned MB', 'In Use MB'])
+
+    vmdata_df = vmdata_df.filter(items= keep_columns, axis= 1)
 
     # rename remaining columns
     vmdata_df.rename(columns = {
@@ -109,8 +107,6 @@ def rvtools_conversion(**kwargs):
         'Powerstate':'vmState',
         'CPUs':'vCpu',
         'Memory':'vRam', 
-        'Provisioned MB':'vmdkTotal',
-        'In Use MB':'vmdkUsed',
         'Primary IP Address':'ip_addresses',
         'Folder':'vmFolder',
         'Resource pool':'resourcePool',
@@ -118,6 +114,11 @@ def rvtools_conversion(**kwargs):
         'Datacenter':'virtualDatacenter'
         }, inplace = True)
 
+    if 'Provisioned MiB' in vmdata_df:
+        vmdata_df.rename(columns ={'Provisioned MiB':'vmdkTotal','In Use MiB':'vmdkUsed'}, inplace = True)
+    else:
+        vmdata_df.rename(columns ={'Provisioned MB':'vmdkTotal','In Use MB':'vmdkUsed'}, inplace = True)
+        
     fillna_values = {"ip_addresses": "no ip", "os": "none specified"}
     vmdata_df.fillna(value=fillna_values, inplace = True)
 
@@ -218,22 +219,23 @@ def build_workload_profiles(**kwargs):
                 wp_file_list.append('5_cluster_remainder.csv')
             return wp_file_list
 
-        case "guest_os":
+        case "os":
             print("Creating workload profiles based on GUEST OPERATING SYSTEM using text match.")
             for match_string in profile_list:
                 profile_df = vm_data_df[vm_data_df['os'].str.contains(match_string)]
                 profile_df.to_csv(f'{output_path}5_guest_os_{match_string}.csv')
                 wp_file_list.append(f'5_guest_os_{match_string}.csv')
-
+                
             # to keep remaining workloads, export all VM NOT matching to remainder CSV
             if kwargs['include_remaining'] == True:
                 pattern = '|'.join(profile_list)
                 vm_data_df_trimmed = vm_data_df[~vm_data_df['os'].str.contains(pattern, case=False)]
                 vm_data_df_trimmed.to_csv(f'{output_path}5_os_remainder.csv')
                 wp_file_list.append('5_os_remainder.csv')
+
             return wp_file_list
 
-        case "vm_name":
+        case "vmName":
             print("Creating workload profiles based on VM NAME using text match.")
 
             for match_string in profile_list:
