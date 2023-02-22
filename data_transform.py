@@ -143,6 +143,8 @@ def rvtools_conversion(**kwargs):
     vm_consolidated = pd.merge(vmdata_df, vdisk_df, on = "VM UUID", how = "left")
     vm_consolidated = pd.merge(vm_consolidated, vpart_df, on = "VM UUID", how = "left")
 
+    storage_na_values = {"vmdkTotal": 0, "vmdkUsed": 0}
+    vm_consolidated.fillna(value=storage_na_values, inplace = True)    
     # convert RAM and storage numbers into GB
     vm_consolidated['vmdkUsed'] = vm_consolidated['vmdkUsed']/1024
     vm_consolidated['vmdkTotal'] = vm_consolidated['vmdkTotal']/1024
