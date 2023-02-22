@@ -88,14 +88,7 @@ def rvtools_conversion(**kwargs):
     vmdata_df = pd.read_excel(f'{input_path}{file_name}', sheet_name = 'vInfo')
 
     # specify columns to KEEP - all others will be dropped
-    keep_columns = ['VM ID','Cluster', 'Datacenter','Primary IP Address','OS according to the VMware Tools', 'DNS Name','Powerstate','CPUs','VM','Memory', 'Resource pool', 'Folder']
-
-    # Different versions of RVTools use either "MB" or "MiB" for storage; check for presence and include appropriate columns
-    if 'Provisioned MiB' in vmdata_df:
-        keep_columns.extend(['Provisioned MiB', 'In Use MiB'])
-    else:
-        keep_columns.extend(['Provisioned MB', 'In Use MB'])
-
+    keep_columns = ['VM UUID', 'VM ID','Cluster', 'Datacenter','Primary IP Address','OS according to the VMware Tools', 'DNS Name','Powerstate','CPUs','VM','Memory', 'Resource pool', 'Folder']
     vmdata_df = vmdata_df.filter(items= keep_columns, axis= 1)
 
     # rename remaining columns
@@ -113,21 +106,49 @@ def rvtools_conversion(**kwargs):
         'Cluster':'cluster', 
         'Datacenter':'virtualDatacenter'
         }, inplace = True)
-
-    if 'Provisioned MiB' in vmdata_df:
-        vmdata_df.rename(columns ={'Provisioned MiB':'vmdkTotal','In Use MiB':'vmdkUsed'}, inplace = True)
-    else:
-        vmdata_df.rename(columns ={'Provisioned MB':'vmdkTotal','In Use MB':'vmdkUsed'}, inplace = True)
         
     fillna_values = {"ip_addresses": "no ip", "os": "none specified"}
     vmdata_df.fillna(value=fillna_values, inplace = True)
 
-    # convert RAM and storage numbers into GB
-    vmdata_df['vmdkUsed'] = vmdata_df['vmdkUsed']/1024
-    vmdata_df['vmdkTotal'] = vmdata_df['vmdkTotal']/1024
-    vmdata_df['vRam'] = vmdata_df['vRam']/1024
+    # pull in rows from vDisk for allocated storage
+    vdisk_df = pd.read_excel(f'{input_path}{file_name}', sheet_name='vDisk')
+    vdisk_columns = ['VM UUID']
+    # Different versions of RVTools use either "MB" or "MiB" for storage; check for presence and include appropriate columns
+    if 'Capacity MiB' in vdisk_df:
+        vdisk_columns.extend(['Capacity MiB'])
+    else:
+        vdisk_columns.extend(['Capacity MB'])
+    vdisk_df = vdisk_df.filter(items= vdisk_columns, axis= 1)
 
-    vmdata_df.to_csv(f'{output_path}1_vmdata_df_rvtools.csv')
+    if 'Capacity MiB' in vdisk_df:
+        vdisk_df.rename(columns ={'Capacity MiB':'vmdkTotal'}, inplace = True)
+    else:
+        vdisk_df.rename(columns ={'Capacity MB':'vmdkTotal'}, inplace = True)
+    vdisk_df = vdisk_df.groupby(['VM UUID'])['vmdkTotal'].sum().reset_index()
+
+    # pull in rows from vPartition for consumed storage
+    vpart_df = pd.read_excel(f'{input_path}{file_name}', sheet_name='vPartition')
+    part_list = ['VM UUID']
+    if 'Consumed MiB' in vpart_df:
+        part_list.extend(['Consumed MiB'])
+    else:
+        part_list.extend(['Consumed MB'])
+    vpart_df = vpart_df.filter(items= part_list, axis= 1)
+    if 'Consumed MiB' in vpart_df:
+        vpart_df.rename(columns ={'Consumed MiB':'vmdkUsed'}, inplace = True)
+    else:
+        vpart_df.rename(columns ={'Consumed MB':'vmdkUsed'}, inplace = True)
+    vpart_df = vpart_df.groupby(['VM UUID'])['vmdkUsed'].sum().reset_index()
+
+    vm_consolidated = pd.merge(vmdata_df, vdisk_df, on = "VM UUID", how = "left")
+    vm_consolidated = pd.merge(vm_consolidated, vpart_df, on = "VM UUID", how = "left")
+
+    # convert RAM and storage numbers into GB
+    vm_consolidated['vmdkUsed'] = vm_consolidated['vmdkUsed']/1024
+    vm_consolidated['vmdkTotal'] = vm_consolidated['vmdkTotal']/1024
+    vm_consolidated['vRam'] = vm_consolidated['vRam']/1024
+
+    vm_consolidated.to_csv(f'{output_path}1_vmdata_df_rvtools.csv')
     csv_file = "1_vmdata_df_rvtools.csv"
     return csv_file
 
