@@ -24,9 +24,7 @@ def data_describe(output_path,csv_file):
     print(vm_data_df['vmState'].value_counts())
     print(f'\nTotal unique operating systems: {vm_data_df.os.nunique()}')
     print('\nGuest operating systems:')
-    for i in sorted(vm_data_df.os.unique()):
-        if i != 'nan':
-            print(i)
+    print(vm_data_df.groupby('os')['VM UUID'].nunique())
     print(f'\nTotal Clusters: {vm_data_df.cluster.nunique()}')
     print(f'Cluster names: {vm_data_df.cluster.unique()}')
     print(f'\nTotal vCPU: {vm_data_df.vCpu.sum()}')
