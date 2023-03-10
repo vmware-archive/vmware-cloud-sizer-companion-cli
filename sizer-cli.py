@@ -34,18 +34,20 @@ def main():
 # Parent parser containing arguments for all import operations
 # ============================
     parent_import_parser = argparse.ArgumentParser(add_help=False)
-    parent_import_parser.add_argument('-fn', '--file_name', required=True, help="The file containing the VM inventory to be imported.  By default, this script looks for the file in the 'input' subdirectory.")
-    parent_import_parser.add_argument('-ft', '--file_type', required=True, choices=['rv-tools', 'live-optics'], type=str.lower, help="Which tool completed the data collection? (choices: %(choices)s) ", metavar='')
+    parent_import_parser.add_argument('-fn', '--file_name', nargs='*', required=True, help="The file containing the VM inventory to be imported.  By default, this script looks for the file in the 'input' subdirectory.")
+    parent_import_parser.add_argument('-ft', '--file_type', required=True, choices=['rv-tools', 'live-optics'], type=str.lower, help="Specify either 'liveoptics' or 'rvtools'")
 
 # ============================
 # Parent parser containing arguments for all sizing operations
 # ============================
 
     parent_sizing_parser = argparse.ArgumentParser(add_help=False)
-    parent_sizing_parser.add_argument('-ct', '--cloud_type', choices=['VMC_ON_AWS', 'GCVE'], default = "VMC_ON_AWS", type=str.upper, help="Which cloud platform are you sizing for? (choices: %(choices)s) (default: %(default)s)", metavar='')
+    parent_sizing_parser.add_argument('-cloud', '--cloud_type', nargs = '?', choices=['VMC_ON_AWS', 'GCVE'], default = "VMC_ON_AWS", type=str.upper, help="Which cloud platform are you sizing for?")
+    parent_sizing_parser.add_argument('-ht', '--host_type', nargs = '?', choices=['I3', 'I3EN', 'I4I'], default = "I4I", type=str.upper, help="Use to specify the desired host type. (default is I4I)")
+    parent_sizing_parser.add_argument('-cluster', '--cluster_type', nargs = '?', choices=['SAZ','MAZ'], default = "SAZ", type=str.upper, help="Use to specify single AZ (SAZ) or stretched cluster (MAZ). Default is SAZ")
     parent_sizing_parser.add_argument('-vp', '--vm_placement', action= "store_true", help="Use to show vm placement. Use to include VM placement data.")
     parent_sizing_parser.add_argument('-logs', '--calculation_logs', action= "store_true", help="Use to show calculation logs. Default is False - results will not, by default, show calculation logs.")
-    parent_sizing_parser.add_argument('-o', '--output_format', choices=['csv', 'pdf', 'ppt', 'xls'], help="Select output format Default is none.  (choices: %(choices)s) ", metavar='')
+    parent_sizing_parser.add_argument('-o', '--output_format', choices=['csv', 'pdf', 'ppt', 'xls'], help="Select output format Default is none.")
 
 # ============================
 # Subparsers for individual commands
@@ -62,13 +64,14 @@ def main():
     custom_sizing_parser = subparsers.add_parser('custom', formatter_class=MyFormatter, parents=[parent_import_parser,parent_sizing_parser], help='Import a file and transform the data before receiving a sizing recommendation.')
     # custom_sizing_parser = subparsers.add_parser('custom', formatter_class=MyFormatter, help='Import a file and transform the data before receiving a sizing recommendation.')
     custom_sizing_parser.add_argument('-exfil', '--exclude_filter', nargs = '+', help = 'A list of text strings used to identify workloads to exclude.')
-    custom_sizing_parser.add_argument('-eff', '--exclude_filter_field', choices = ['cluster','os','vmName'], help = "The column/field used for exclusion filtering. (choices: %(choices)s) ", metavar='')
+    custom_sizing_parser.add_argument('-eff', '--exclude_filter_field', choices = ['cluster','os','vmName'], help = 'The column/field used for exclusion filtering.')
     custom_sizing_parser.add_argument('-infil', '--include_filter', nargs = '+', help = 'A list of text strings used to identify workloads to keep.')
-    custom_sizing_parser.add_argument('-iff', '--include_filter_field', choices = ['cluster','os','vmName'], help = "The column/field used for inclusion filtering. (choices: %(choices)s) ", metavar='')
+    custom_sizing_parser.add_argument('-iff', '--include_filter_field', choices = ['cluster','os','vmName'], help = "The column/field used for inclusion filtering.")
     custom_sizing_parser.add_argument('-ps', '--power_state',  choices = ['p', 'ps'], type=str.lower, help = "By default, all VM are included regardless of powere state. Use to specify whether to include only those (p)owered on, or powered on and suspended (ps). (choices: %(choices)s) ", metavar='')
-    custom_sizing_parser.add_argument('-wp', '--workload_profiles', choices=['all_clusters', 'some_clusters', 'os','vmName'], type=str.lower, help = "Use to create workload profiles based on the selected grouping. (choices: %(choices)s) ", metavar='')
+    custom_sizing_parser.add_argument('-wp', '--workload_profiles', choices=['all_clusters', 'some_clusters', 'os','vmName'], type=str.lower, help = "Use to create workload profiles based on the selected grouping.")
     custom_sizing_parser.add_argument('-pl', '--profile_list', nargs = '+', help = 'A list of text strings used to filter workloads for the creation of workload profiles.')
     custom_sizing_parser.add_argument('-ir', '--include_remaining', action= 'store_true', help= 'Use to indicate you wish to keep remaining workloads - default is to discard.')   
+    custom_sizing_parser.add_argument('-st', '--storage_type', nargs = '?', choices=['PROVISIONED', 'UTILIZED'], default = "UTILIZED", type=str.upper, help="Use to specify whetther PROVISIONED or UTILIZED storage is used (default is UTILIZED).")
     custom_sizing_parser.set_defaults(func = custom_import_sizing)
 
 # ============================

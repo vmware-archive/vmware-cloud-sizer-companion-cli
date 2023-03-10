@@ -24,7 +24,12 @@ def generate_table(results):
 def recommendation_transformer(json_data):
     '''Extracts the data from the recommendation into discrete dataframes / arrays to be displayed on the screen.'''
     # create dict for SDDC overview
-    overview_df = pd.json_normalize(json_data['sddcList'][0]['clusterList']['sazClusters']['hostBreakupList'][0])
+    if json_data['sddcList'][0]['clusterList']['sazClusters'] is None:
+        cluster_type = 'mazClusters'
+    else:
+        cluster_type = 'sazClusters'
+
+    overview_df = pd.json_normalize(json_data['sddcList'][0]['clusterList'][cluster_type]['hostBreakupList'][0])
     overview_df = overview_df.transpose()
 
     # extract vm exceptions
@@ -40,7 +45,7 @@ def recommendation_transformer(json_data):
     vm_json = {}
 
     #extract clusters and virtual machines into separate arrays
-    clusters = (json_data['sddcList'][0]['clusterList']['sazClusters']['clusterInfoList'])
+    clusters = (json_data['sddcList'][0]['clusterList'][cluster_type]['clusterInfoList'])
     for count, cluster in enumerate(clusters, start=0):
         cluster_id = f'cluster_{count}'
         df_host_list = pd.json_normalize(cluster, record_path =['hostList'], max_level=1)
@@ -49,9 +54,9 @@ def recommendation_transformer(json_data):
 
         #enumerate VMs in the cluster
         vm_list = []
-        hosts = (json_data['sddcList'][0]['clusterList']['sazClusters']['clusterInfoList'][count]['hostList'])
+        hosts = (json_data['sddcList'][0]['clusterList'][cluster_type]['clusterInfoList'][count]['hostList'])
         for hostcount, host in enumerate(hosts):
-            vms = (json_data['sddcList'][0]['clusterList']['sazClusters']['clusterInfoList'][count]['hostList'][hostcount]['vmList'])
+            vms = (json_data['sddcList'][0]['clusterList'][cluster_type]['clusterInfoList'][count]['hostList'][hostcount]['vmList'])
             if vms is not None:
                 for vmcount, vm in enumerate(vms):
                     vm_list.append(vm['vmName'])

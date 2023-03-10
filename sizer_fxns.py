@@ -71,7 +71,10 @@ def custom_import_sizing(**kwargs):
     fn = kwargs['file_name']
     input_path = kwargs['input_path']
     output_path = kwargs['output_path']
-    ct = kwargs['cloud_type']
+    cloud_type = kwargs['cloud_type']
+    cluster_type = kwargs['cluster_type']
+    host_type = kwargs['host_type']
+    storage_type = kwargs['storage_type']
 
     options = ['vm_placement', 'calculation_logs', 'output_format']
     rec_params = {}
@@ -138,7 +141,7 @@ def custom_import_sizing(**kwargs):
             wp_file_list = [csv_file]
         else:
             pass
-        payload_params = {"output_path":output_path, "ct":ct, "wp_file_list":wp_file_list, "cloudType":ct}
+        payload_params = {"output_path":output_path, "cloud_type":cloud_type, "host_type": host_type, "cluster_type":cluster_type, "storage_type":storage_type, "wp_file_list":wp_file_list, "cloudType":cloud_type}
         sizer_request = build_recommendation_payload(**payload_params)
         rec_params['sizer_request'] = sizer_request
         get_recommendation(**rec_params)
