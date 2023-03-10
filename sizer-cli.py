@@ -34,7 +34,7 @@ def main():
 # Parent parser containing arguments for all import operations
 # ============================
     parent_import_parser = argparse.ArgumentParser(add_help=False)
-    parent_import_parser.add_argument('-fn', '--file_name', required=True, help="The file containing the VM inventory to be imported.  By default, this script looks for the file in the 'input' subdirectory.")
+    parent_import_parser.add_argument('-fn', '--file_name', nargs='*', required=True, help="The file containing the VM inventory to be imported.  By default, this script looks for the file in the 'input' subdirectory.")
     parent_import_parser.add_argument('-ft', '--file_type', required=True, choices=['rv-tools', 'live-optics'], type=str.lower, help="Which tool completed the data collection? (choices: %(choices)s) ", metavar='')
 
 # ============================
