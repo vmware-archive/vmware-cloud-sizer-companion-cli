@@ -295,13 +295,12 @@ def build_workload_profiles(**kwargs):
 def build_recommendation_payload(**kwargs):
     output_path = kwargs['output_path']
     wp_file_list = kwargs['wp_file_list']
-    cloudType = kwargs['ct']
+    cloudType = kwargs['cloud_type']
+    storage_type = kwargs['storage_type']
 
     # set configurations for recommendation calculations
     configurations = {
         "cloudType": cloudType,
-        # "sddcHostType": "COST_OPT",
-        "clusterType": "SAZ",
         "computeOvercommitFactor": 4,
         "cpuHeadroom": 0.15,
         "hyperThreadingFactor": 1.25,
@@ -327,6 +326,16 @@ def build_recommendation_payload(**kwargs):
         "applianceSize": "AUTO",
         "addonsList": []
     }
+
+    # set host type based on cloud type
+    match cloudType:
+        case "GCVE":
+            pass
+        case "VMC_ON_AWS":
+            hostType = kwargs['host_type']
+            clusterType = kwargs['cluster_type']            
+            configurations["sddcHostType"] = hostType
+            configurations["clusterType"] = clusterType
     
     # build json objects for recommendation payload
     workloadProfiles = []
@@ -352,8 +361,13 @@ def build_recommendation_payload(**kwargs):
             VMInfo["vmName"] = str(vm_data_df['vmName'][ind])
             VMInfo["vmComputeInfo"]["vCpu"] = int(vm_data_df['vCpu'][ind])
             VMInfo["vmMemoryInfo"]["vRam"] = int(vm_data_df['vRam'][ind])
-            VMInfo["vmStorageInfo"]["vmdkTotal"] = int(vm_data_df['vmdkTotal'][ind])
-            VMInfo["vmStorageInfo"]["vmdkUsed"] = int(vm_data_df['vmdkUsed'][ind])
+            match storage_type:
+                case "PROVISIONED":
+                    VMInfo["vmStorageInfo"]["vmdkTotal"] = int(vm_data_df['vmdkTotal'][ind])
+                    VMInfo["vmStorageInfo"]["vmdkUsed"] = int(vm_data_df['vmdkTotal'][ind])
+                case "UTILIZED":
+                    VMInfo["vmStorageInfo"]["vmdkTotal"] = int(vm_data_df['vmdkUsed'][ind])
+                    VMInfo["vmStorageInfo"]["vmdkUsed"] = int(vm_data_df['vmdkUsed'][ind])
             vmList.append(VMInfo)
 
         profile['vmList'] = vmList
