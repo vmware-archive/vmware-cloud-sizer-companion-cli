@@ -106,7 +106,8 @@ Furthermore, note that the original file will never actually be altered - it is 
 Avoid the use of special characters when using text strings for filtering (such as asterisks, parentheses, etc).
 
 ## 1.6 List of Commands with options
-```sizer-cli.py -h
+```
+sizer-cli.py -h
 A Command-line companion for the VMware Cloud Sizer.
 
 positional arguments:
@@ -131,7 +132,8 @@ options:
 ```
 
 
-```/sizer-cli.py describe -h
+```
+/sizer-cli.py describe -h
 usage:  describe [-h] -fn [FILE_NAME ...] -ft {rv-tools,live-optics}
 
 options:
@@ -143,7 +145,8 @@ options:
           Specify either 'liveoptics' or 'rvtools'
 ```
 
-```sizer-cli.py default -h 
+```
+sizer-cli.py default -h 
 usage:  default [-h] -fn [FILE_NAME ...] -ft {rv-tools,live-optics} [-cloud [{VMC_ON_AWS,GCVE}]] [-ht [{I3,I3EN,I4I}]] [-cluster [{SAZ,MAZ}]] [-vp] [-logs] [-o {csv,pdf,ppt,xls}]
 
 options:
@@ -166,7 +169,8 @@ options:
   -o {csv,pdf,ppt,xls}, --output_format {csv,pdf,ppt,xls}
           Select output format Default is none.
 ```
-```sizer-cli.py custom -h 
+```
+sizer-cli.py custom -h 
 usage:  custom [-h] -fn [FILE_NAME ...] -ft {rv-tools,live-optics} [-cloud [{VMC_ON_AWS,GCVE}]] [-ht [{I3,I3EN,I4I}]] [-cluster [{SAZ,MAZ}]] [-vp] [-logs] [-o {csv,pdf,ppt,xls}]
                [-exfil EXCLUDE_FILTER [EXCLUDE_FILTER ...]] [-eff {cluster,os,vmName}] [-infil INCLUDE_FILTER [INCLUDE_FILTER ...]] [-iff {cluster,os,vmName}] [-ps]
                [-wp {all_clusters,some_clusters,os,vmName}] [-pl PROFILE_LIST [PROFILE_LIST ...]] [-ir] [-st [{PROVISIONED,UTILIZED}]]
