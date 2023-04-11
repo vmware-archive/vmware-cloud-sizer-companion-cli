@@ -381,7 +381,7 @@ def build_recommendation_payload(**kwargs):
         profile["isEnabled"] = True
         profile["workloadProfileType"] = profile_type
         profile["storagePreference"] = storage_type
-        print(f'{profile["storagePreference"]}')
+        print(f'Using preferred storage type of: {profile["storagePreference"]}')
         profile["extStorageVendorType"] = storage_vendor
 
         vmList = []
