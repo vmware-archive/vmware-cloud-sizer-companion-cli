@@ -174,11 +174,17 @@ def get_recommendation(**kwargs):
     else:
         pass
 
+    # strip calculations out of the json, store for later use
     calcs = json_raw["calculationLog"]
     del json_raw["calculationLog"]
 
+    # strip assumptions out of the json, store for later use
+    assumps = json_raw["sizingAssumtions"]
+    del json_raw["sizingAssumtions"]
+
+    # take the rest of the json output and transform it
     output_json = recommendation_transformer(json_raw)
-    output_params = {"recommendation":output_json, "calcs":calcs,"cl":cl}
+    output_params = {"recommendation":output_json, "calcs":calcs,"assumps":assumps,"cl":cl}
     match output_format:
         case "csv":
             print("Exporting recommendation to CSV.")
