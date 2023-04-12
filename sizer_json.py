@@ -90,6 +90,9 @@ def parse_excel_api(**kwargs):
         ('excelFile',(fn,open(f'{input_path}{fn}','rb'),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
         ]
 
+    print()
+    print("Submitting Excel file for parsing.")
+
     response = requests.post(uri, files=files)
     if response.status_code == 200:
         return response.json()
@@ -101,6 +104,8 @@ def get_pdf_api(**kwargs):
     # sessiontoken = kwargs['access_token']
     json_data = kwargs['json_data']
 
+    print()
+    print("Requesting PDF")
     if kwargs['vp'] is not None:
         vp = kwargs['vp']
     else:
@@ -126,7 +131,11 @@ def get_recommendation_api(**kwargs):
     json_data = kwargs['json_data']
     vp = kwargs['vp']
 
+    print()
+    print("Requesting recommendation")
+
     uri = f'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement={vp}'
+    # uri = f'https://dev.skyscraper.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement={vp}'
     my_header = {'Content-Type': 'application/json'}
     response = requests.post(uri, headers = my_header, data = json_data)
     if response.status_code == 200:

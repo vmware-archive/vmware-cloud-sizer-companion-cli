@@ -39,6 +39,9 @@ def lova_conversion(**kwargs):
     file_name = kwargs['file_name'] 
     output_path = kwargs['output_path']
 
+    print()
+    print("Parsing LiveOptics file(s) locally.")
+
     df_list = []
     for file in file_name:
         file_df = pd.read_excel(f'{input_path}{file}', sheet_name="VMs")
@@ -77,7 +80,9 @@ def lova_conversion(**kwargs):
     vmdata_df['vmdkTotal'] = vmdata_df['vmdkTotal']/1024
     vmdata_df['vRam'] = vmdata_df['vRam']/1024
 
-    vmdata_df.to_csv(f'{output_path}1_vmdata_df_lova.csv')
+    vm_df_export = vmdata_df.round({'vmdkUsed':0,'vmdkTotal':0,'vRam':0})
+    vm_df_export.to_csv(f'{output_path}1_vmdata_df_lova.csv')
+
     csv_file = "1_vmdata_df_lova.csv"
     return csv_file
 
@@ -87,14 +92,18 @@ def rvtools_conversion(**kwargs):
     file_name = kwargs['file_name'] 
     output_path = kwargs['output_path']
 
+    print()
+    print("Parsing RVTools file(s) locally.")
+
     df_list = []
     for file in file_name:
+        print(f'Reading {input_path}{file}')
         file_df = pd.read_excel(f'{input_path}{file}', sheet_name = 'vInfo')
         df_list.append(file_df)
     vmdata_df = pd.concat(df_list, axis=0, ignore_index=True)
 
     # specify columns to KEEP - all others will be dropped
-    keep_columns = ['VM ID','Cluster', 'Datacenter','Primary IP Address','OS according to the VMware Tools', 'DNS Name','Powerstate','CPUs','VM','Memory', 'Resource pool', 'Folder']
+    keep_columns = ['VM ID','Cluster', 'Datacenter','Primary IP Address','OS according to the VMware Tools', 'DNS Name','Powerstate','CPUs','VM','Memory']
     vmdata_df = vmdata_df.filter(items= keep_columns, axis= 1)
 
     # rename remaining columns
@@ -136,6 +145,7 @@ def rvtools_conversion(**kwargs):
         vdisk_df.rename(columns ={'Capacity MB':'vmdkTotal'}, inplace = True)
     vdisk_df = vdisk_df.groupby(['VM ID'])['vmdkTotal'].sum().reset_index()
 
+
     # pull in rows from vPartition for consumed storage
     partdf_list = []
     for file in file_name:
@@ -149,6 +159,7 @@ def rvtools_conversion(**kwargs):
     else:
         part_list.extend(['Consumed MB'])
     vpart_df = vpart_df.filter(items= part_list, axis= 1)
+
     if 'Consumed MiB' in vpart_df:
         vpart_df.rename(columns ={'Consumed MiB':'vmdkUsed'}, inplace = True)
     else:
@@ -160,12 +171,18 @@ def rvtools_conversion(**kwargs):
 
     vm_consolidated.rename(columns = {'VM ID':'vmId'}, inplace = True)
 
-    storage_na_values = {"vmdkTotal": 0, "vmdkUsed": 0}
-    vm_consolidated.fillna(value=storage_na_values, inplace = True)    
     # convert RAM and storage numbers into GB
     vm_consolidated['vmdkUsed'] = vm_consolidated['vmdkUsed']/1024
     vm_consolidated['vmdkTotal'] = vm_consolidated['vmdkTotal']/1024
     vm_consolidated['vRam'] = vm_consolidated['vRam']/1024
+
+    # Replace NA values for used VMDK and total VMDK with 10GB
+    storage_na_values = {"vmdkTotal": 10, "vmdkUsed": 10}
+    vm_consolidated.fillna(value=storage_na_values, inplace = True)
+
+    # Replace 0 values for used VMDK and total VMDK with 10GB
+    vm_consolidated['vmdkUsed'] = vm_consolidated['vmdkUsed'].replace(0, 10)
+    vm_consolidated['vmdkTotal'] = vm_consolidated['vmdkTotal'].replace(0, 10)
 
     vm_consolidated.to_csv(f'{output_path}1_vmdata_df_rvtools.csv')
     csv_file = "1_vmdata_df_rvtools.csv"
@@ -177,7 +194,9 @@ def ps_filter(**kwargs):
     csv_file = kwargs['csv_file']
     power_state = kwargs['power_state']
 
-    vm_data_df = pd.read_csv(f'{output_path}{csv_file}')
+    print()
+    print("Filtering workloads based on power state.")
+    vm_data_df = pd.read_csv(f'{output_path}{csv_file}',index_col=0)
     if power_state == "p":
         vm_data_df_trimmed = vm_data_df[vm_data_df.vmState == "poweredOn"]
     elif power_state == "ps":
@@ -196,7 +215,9 @@ def include_workloads(**kwargs):
     infil = kwargs['include_filter']
     infilf = kwargs['include_filter_field']
 
-    vm_data_df = pd.read_csv(f'{output_path}{csv_file}')
+    print()
+    print(f'Including only those workloads where {infilf} includes {infil}')
+    vm_data_df = pd.read_csv(f'{output_path}{csv_file}',index_col=0)
 
     pattern = '|'.join(infil)
     vm_data_df_trimmed = vm_data_df[vm_data_df[infilf].str.contains(pattern, case=False) == True]
@@ -211,7 +232,9 @@ def exclude_workloads(**kwargs):
     exfil = kwargs['exclude_filter']
     exfilf = kwargs['exclude_filter_field']
 
-    vm_data_df = pd.read_csv(f'{output_path}{csv_file}')
+    print()
+    print(f'Excluding those workloads where {exfilf} includes {exfil}')
+    vm_data_df = pd.read_csv(f'{output_path}{csv_file}',index_col=0)
 
     pattern = '|'.join(exfil)
     vm_data_df_trimmed = vm_data_df[vm_data_df[exfilf].str.contains(pattern, case=False) == False]
@@ -227,10 +250,12 @@ def build_workload_profiles(**kwargs):
     if kwargs['profile_list'] is not None:
         profile_list = kwargs['profile_list']
 
+    print()
+    print(f'Separating workloads into profiles based on {profile_config}')
     #create list for storing file names
     wp_file_list = []
 
-    vm_data_df = pd.read_csv(f'{output_path}{csv_file}')
+    vm_data_df = pd.read_csv(f'{output_path}{csv_file}',index_col=0)
 
     match profile_config:
         case "all_clusters":
@@ -296,8 +321,13 @@ def build_recommendation_payload(**kwargs):
     output_path = kwargs['output_path']
     wp_file_list = kwargs['wp_file_list']
     cloudType = kwargs['cloud_type']
+    storage_capacity = kwargs['storage_capacity']
     storage_type = kwargs['storage_type']
+    storage_vendor = kwargs['storage_vendor']
+    profile_type = kwargs['profile_type']
 
+    print()
+    print('Building sizing request payload')
     # set configurations for recommendation calculations
     configurations = {
         "cloudType": cloudType,
@@ -316,7 +346,7 @@ def build_recommendation_payload(**kwargs):
         "totalIOPs": None,
         "includeManagementVMs": True,
         "fttFtmType": "AUTO_AUTO",
-        "separateCluster": None,
+        "separateClusters": True,
         "instanceSettingsList": None,
         "vmOutlierLimits": {
             "cpuLimit": 0.75,
@@ -344,11 +374,15 @@ def build_recommendation_payload(**kwargs):
     for file in wp_file_list:
         vm_data_df = pd.read_csv(f'{output_path}{file}')
 
-        # build the profile
+        # build the profiles
         profile = {}
         profile["profileName"] = file
         profile['separateCluster'] = True
         profile["isEnabled"] = True
+        profile["workloadProfileType"] = profile_type
+        profile["storagePreference"] = storage_type
+        print(f'Using preferred storage type of: {profile["storagePreference"]}')
+        profile["extStorageVendorType"] = storage_vendor
 
         vmList = []
 
@@ -361,7 +395,7 @@ def build_recommendation_payload(**kwargs):
             VMInfo["vmName"] = str(vm_data_df['vmName'][ind])
             VMInfo["vmComputeInfo"]["vCpu"] = int(vm_data_df['vCpu'][ind])
             VMInfo["vmMemoryInfo"]["vRam"] = int(vm_data_df['vRam'][ind])
-            match storage_type:
+            match storage_capacity:
                 case "PROVISIONED":
                     VMInfo["vmStorageInfo"]["vmdkTotal"] = int(vm_data_df['vmdkTotal'][ind])
                     VMInfo["vmStorageInfo"]["vmdkUsed"] = int(vm_data_df['vmdkTotal'][ind])
@@ -378,4 +412,8 @@ def build_recommendation_payload(**kwargs):
         "workloadProfiles": workloadProfiles
         }
 
+
+    with open("output/recommendation_request.txt", "a") as f:
+        print(json.dumps(sizerRequest, indent=2), file=f)
+ 
     return json.dumps(sizerRequest)
