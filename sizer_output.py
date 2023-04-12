@@ -14,7 +14,14 @@ import time
 
 def generate_table(results):
     """Generates a 'prettytable' using a JSON payload; automatically uses the dictionary keys in the payload as column headers."""
-    keyslist = list(results[0].keys())
+    # if type(results) is list:
+    if type(results) is list:
+        keyslist = list(results[0].keys())
+    elif type(results) is dict:
+        keyslist = list(results.keys())
+    else:
+            return False
+
     table = PrettyTable(keyslist)
     for dct in results:
         table.add_row([dct.get(c, "") for c in keyslist])
@@ -31,6 +38,13 @@ def recommendation_transformer(json_data):
 
     overview_df = pd.json_normalize(json_data['sddcList'][0]['clusterList'][cluster_type]['hostBreakupList'][0])
     overview_df = overview_df.transpose()
+
+    # strip external storage out of the json, store for later use
+    if not json_data['sddcList'][0]['externalStorageList']:
+        ext_storage_df = None
+    else:
+        ext_storage_df = pd.json_normalize(json_data['sddcList'][0]['externalStorageList'][0])
+        ext_storage_df = ext_storage_df.transpose()
 
     # extract vm exceptions
     if 'vmExceptions' in json_data['sddcList'][0]:
@@ -64,6 +78,7 @@ def recommendation_transformer(json_data):
 
     output_array = {}
     output_array["overview"] = overview_df
+    output_array["ext_storage"] = ext_storage_df
     output_array["cluster_json"] = cluster_json
     output_array["vm_json"] = vm_json
     output_array['vm_exceptions'] = vm_exceptions
@@ -97,8 +112,10 @@ def powerpoint_output(**kwargs):
 
 def terminal_output(**kwargs):
     calcs = kwargs['calcs']
+    assumps = kwargs['assumps']
     logs = kwargs['cl']
     overview = kwargs['recommendation']['overview']
+    ext_storage = kwargs['recommendation']['ext_storage']
     cluster_json =  kwargs['recommendation']['cluster_json']
     vm_json =  kwargs['recommendation']['vm_json']
     vm_exceptions = kwargs['recommendation']['vm_exceptions']
@@ -112,6 +129,12 @@ def terminal_output(**kwargs):
 
     for cluster, vm_list in vm_json.items():
         print(f'\n\n{cluster} virtual machines:\n', vm_list)
+
+    try:
+        print('\nExternal Storage Capacity:\n')
+        print(ext_storage)
+    except:
+        print("There is no external storage.")
 
     try:
         vm_exceptions
@@ -128,6 +151,11 @@ def terminal_output(**kwargs):
         print(table.get_string(fields=['vmName', 'exceptionReason', 'unsupportedResourceTypes', 'preferredHostType', 'chosenHostType']))
     except:
         print("There are no host incompatibilities.")
+
+    print()
+    print("Assumptions:")
+    for i in assumps:
+        print(f'  * {i}')
 
     # print calculation logs if user desires
     if logs is True:

@@ -135,7 +135,6 @@ def get_recommendation_api(**kwargs):
     print("Requesting recommendation")
 
     uri = f'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement={vp}'
-    # uri = f'https://dev.skyscraper.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement={vp}'
     my_header = {'Content-Type': 'application/json'}
     response = requests.post(uri, headers = my_header, data = json_data)
     if response.status_code == 200:
