@@ -34,7 +34,7 @@ def main():
 # Parent parser containing arguments for all import operations
 # ============================
     parent_import_parser = argparse.ArgumentParser(add_help=False)
-    parent_import_parser.add_argument('-fn', '--file_name', nargs='*', required=True, help="The file containing the VM inventory to be imported.  By default, this script looks for the file in the 'input' subdirectory.")
+    parent_import_parser.add_argument('-fn', '--file_name', nargs='*', required=True, help="A space-separated list of file names containing the VM inventory to be imported; all files must be of the same type (LiveOptics or RVTools).  By default, this script looks for the file in the 'input' subdirectory.")
     parent_import_parser.add_argument('-ft', '--file_type', required=True, choices=['rv-tools', 'live-optics'], type=str.lower, help="Specify either 'liveoptics' or 'rvtools'")
 
 # ============================
@@ -63,13 +63,13 @@ def main():
 
     custom_sizing_parser = subparsers.add_parser('custom', formatter_class=MyFormatter, parents=[parent_import_parser,parent_sizing_parser], help='Import a file and transform the data before receiving a sizing recommendation.')
     # custom_sizing_parser = subparsers.add_parser('custom', formatter_class=MyFormatter, help='Import a file and transform the data before receiving a sizing recommendation.')
-    custom_sizing_parser.add_argument('-exfil', '--exclude_filter', nargs = '+', help = 'A list of text strings used to identify workloads to exclude.')
+    custom_sizing_parser.add_argument('-exfil', '--exclude_filter', nargs = '+', help = 'A space-separated list of text strings used to identify workloads to exclude.')
     custom_sizing_parser.add_argument('-eff', '--exclude_filter_field', choices = ['cluster','os','vmName'], help = 'The column/field used for exclusion filtering.')
-    custom_sizing_parser.add_argument('-infil', '--include_filter', nargs = '+', help = 'A list of text strings used to identify workloads to keep.')
+    custom_sizing_parser.add_argument('-infil', '--include_filter', nargs = '+', help = 'A space-separated list of text strings used to identify workloads to keep.')
     custom_sizing_parser.add_argument('-iff', '--include_filter_field', choices = ['cluster','os','vmName'], help = "The column/field used for inclusion filtering.")
     custom_sizing_parser.add_argument('-ps', '--power_state',  choices = ['p', 'ps'], type=str.lower, help = "By default, all VM are included regardless of powere state. Use to specify whether to include only those (p)owered on, or powered on and suspended (ps). (choices: %(choices)s) ", metavar='')
     custom_sizing_parser.add_argument('-wp', '--workload_profiles', choices=['all_clusters', 'some_clusters', 'os','vmName'], help = "Use to create workload profiles based on the selected grouping.")
-    custom_sizing_parser.add_argument('-pl', '--profile_list', nargs = '+', help = 'A list of text strings used to filter workloads for the creation of workload profiles.')
+    custom_sizing_parser.add_argument('-pl', '--profile_list', nargs = '+', help = 'A space-separated list of text strings used to filter workloads for the creation of workload profiles.')
     custom_sizing_parser.add_argument('-pt', '--profile_type', nargs = '?', choices = ['GPW_GVM','DBW_ORA','DBW_SQL','VDW_FCL','VDW_ICL'], default = "GPW_GVM", type=str.upper, help = 'Type of workload profile (default = GPW_GVM).')
     custom_sizing_parser.add_argument('-ir', '--include_remaining', action= 'store_true', help= 'Use to indicate you wish to keep remaining workloads - default is to discard.')   
     custom_sizing_parser.add_argument('-sc', '--storage_capacity', nargs = '?', choices=['PROVISIONED', 'UTILIZED'], default = "PROVISIONED", type=str.upper, help="Use to specify whether PROVISIONED or UTILIZED storage is used (default is UTILIZED).")

@@ -28,9 +28,9 @@ def data_describe(output_path,csv_file):
     print(f'\nTotal Clusters: {vm_data_df.cluster.nunique()}')
     print(f'Cluster names: {vm_data_df.cluster.unique()}')
     print(f'\nTotal vCPU: {vm_data_df.vCpu.sum()}')
-    print(f'\nTotal vRAM: {vm_data_df.vRam.sum()}')
-    print(f'\nTotal used VMDK: {vm_data_df.vmdkUsed.sum()}')
-    print(f'\nTotal provisioned VMDK: {vm_data_df.vmdkTotal.sum()}')
+    print(f'\nTotal vRAM (GiB): {vm_data_df.vRam.sum()}')
+    print(f'\nTotal used VMDK (GiB): {vm_data_df.vmdkUsed.sum()}')
+    print(f'\nTotal provisioned VMDK (GiB): {vm_data_df.vmdkTotal.sum()}')
     print(f'\n{vm_data_df.describe()}')
 
 
