@@ -21,11 +21,11 @@ def main():
                     description = 'A Command-line companion for the VMware Cloud Sizer.',
                     formatter_class=MyFormatter, usage=SUPPRESS,
                     epilog='''
-                    Welcome to the VMC Sizer Companion CLI!! \n\n
-                    This tool is used to help you send and receive sizing recommendations from the VMware Cloud Sizer quickly and reliably, with a number of available options.
-                    The script acn be used to import data from from either RVTools or LiveOptics (DO NOT MODIFY the original files), or simply receive a 'quick sizing' from the sizer.
-                    Use arguments at the command line to transform the data before you receive your sizing!\n\n
-                    ''')
+    Welcome to the VMC Sizer Companion CLI!! \n\n
+    This tool is used to help you send and receive sizing recommendations from the VMware Cloud Sizer quickly and reliably, with a number of available options.
+    The script acn be used to import data from from either RVTools or LiveOptics (DO NOT MODIFY the original files), or simply receive a 'quick sizing' from the sizer.
+    Use arguments at the command line to transform the data before you receive your sizing!\n\n
+    ''')
 
     # create a subparser for the subsequent sections    
     subparsers = ap.add_subparsers(help='sub-command help')
@@ -35,7 +35,7 @@ def main():
 # ============================
     parent_import_parser = argparse.ArgumentParser(add_help=False)
     parent_import_parser.add_argument('-fn', '--file_name', nargs='*', required=True, help="A space-separated list of file names containing the VM inventory to be imported; all files must be of the same type (LiveOptics or RVTools).  By default, this script looks for the file in the 'input' subdirectory.")
-    parent_import_parser.add_argument('-ft', '--file_type', required=True, choices=['rv-tools', 'live-optics'], type=str.lower, help="Specify either 'liveoptics' or 'rvtools'")
+    parent_import_parser.add_argument('-ft', '--file_type', required=True, choices=['rv-tools', 'live-optics'], type=str.lower, help="Specify either 'live-optics' or 'rv-tools'")
 
 # ============================
 # Parent parser containing arguments for all sizing operations
