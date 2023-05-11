@@ -81,7 +81,31 @@ def lova_conversion(**kwargs):
     vmdata_df['vRam'] = vmdata_df['vRam']/1024
 
     vm_df_export = vmdata_df.round({'vmdkUsed':0,'vmdkTotal':0,'vRam':0})
-    vm_df_export.to_csv(f'{output_path}1_vmdata_df_lova.csv')
+
+    # pull in rows from VM Performance for storage performance metrics
+    diskperf_list = []
+    for file in file_name:
+        disk_df = pd.read_excel(f'{input_path}{file}', sheet_name = 'VM Performance')
+        diskperf_list.append(disk_df)
+    diskperf_df = pd.concat(diskperf_list, axis=0, ignore_index=True)
+
+    perf_columns = ["MOB ID","Avg Read IOPS","Avg Write IOPS","Peak Read IOPS","Peak Write IOPS","Avg Read MB/s","Avg Write MB/s","Peak Read MB/s","Peak Write MB/s"]
+    diskperf_df = diskperf_df.filter(items= perf_columns, axis= 1)
+    diskperf_df.rename(columns = {
+        'MOB ID':'vmId', 
+        'Avg Read IOPS':'readIOPS',
+        'Avg Write IOPS':'writeIOPS',
+        'Peak Read IOPS':'peakReadIOPS',
+        'Peak Write IOPS':'peakWriteIOPS',
+        'Avg Read MB/s':'readThroughput',
+        'Avg Write MB/s':'writeThroughput',
+        'Peak Read MB/s':'peakReadThroughput',
+        'Peak Write MB/s':'peakWriteThroughput'
+        }, inplace = True)
+
+    vm_consolidated = pd.merge(vmdata_df, diskperf_df, on = "vmId", how = "left")
+
+    vm_consolidated.to_csv(f'{output_path}1_vmdata_df_lova.csv')
 
     csv_file = "1_vmdata_df_lova.csv"
     return csv_file
@@ -108,6 +132,7 @@ def rvtools_conversion(**kwargs):
 
     # rename remaining columns
     vmdata_df.rename(columns = {
+        'VM ID':'vmId', 
         'VM':'vmName',
         'OS according to the VMware Tools':'os',
         'DNS Name':'os_name',
@@ -143,8 +168,8 @@ def rvtools_conversion(**kwargs):
         vdisk_df.rename(columns ={'Capacity MiB':'vmdkTotal'}, inplace = True)
     else:
         vdisk_df.rename(columns ={'Capacity MB':'vmdkTotal'}, inplace = True)
-    vdisk_df = vdisk_df.groupby(['VM ID'])['vmdkTotal'].sum().reset_index()
-
+    vdisk_df.rename(columns ={'VM ID':'vmId'}, inplace = True)
+    vdisk_df = vdisk_df.groupby(['vmId'])['vmdkTotal'].sum().reset_index()
 
     # pull in rows from vPartition for consumed storage
     partdf_list = []
@@ -164,12 +189,11 @@ def rvtools_conversion(**kwargs):
         vpart_df.rename(columns ={'Consumed MiB':'vmdkUsed'}, inplace = True)
     else:
         vpart_df.rename(columns ={'Consumed MB':'vmdkUsed'}, inplace = True)
-    vpart_df = vpart_df.groupby(['VM ID'])['vmdkUsed'].sum().reset_index()
+    vpart_df.rename(columns ={'VM ID':'vmId'}, inplace = True)
+    vpart_df = vpart_df.groupby(['vmId'])['vmdkUsed'].sum().reset_index()
 
-    vm_consolidated = pd.merge(vmdata_df, vdisk_df, on = "VM ID", how = "left")
-    vm_consolidated = pd.merge(vm_consolidated, vpart_df, on = "VM ID", how = "left")
-
-    vm_consolidated.rename(columns = {'VM ID':'vmId'}, inplace = True)
+    vm_consolidated = pd.merge(vmdata_df, vdisk_df, on = "vmId", how = "left")
+    vm_consolidated = pd.merge(vm_consolidated, vpart_df, on = "vmId", how = "left")
 
     # convert RAM and storage numbers into GB
     vm_consolidated['vmdkUsed'] = vm_consolidated['vmdkUsed']/1024
@@ -325,6 +349,9 @@ def build_recommendation_payload(**kwargs):
     storage_type = kwargs['storage_type']
     storage_vendor = kwargs['storage_vendor']
     profile_type = kwargs['profile_type']
+    pct_cpu = kwargs['pct_cpu']
+    pct_mem = kwargs['pct_mem']
+    fttFtmType = kwargs['fttFtmType']
 
     print()
     print('Building sizing request payload')
@@ -335,8 +362,8 @@ def build_recommendation_payload(**kwargs):
         "cpuHeadroom": 0.15,
         "hyperThreadingFactor": 1.25,
         "memoryOvercommitFactor": 1.25,
-        "cpuUtilization": 1,
-        "memoryUtilization": 1,
+        "cpuUtilization": pct_cpu,
+        "memoryUtilization": pct_mem,
         "storageThresholdFactor": 0.8,
         "compressionRatio": 1.25,
         "dedupRatio": 1.5,
@@ -345,7 +372,7 @@ def build_recommendation_payload(**kwargs):
         "ioRatio": None,
         "totalIOPs": None,
         "includeManagementVMs": True,
-        "fttFtmType": "AUTO_AUTO",
+        "fttFtmType": fttFtmType,
         "separateClusters": True,
         "instanceSettingsList": None,
         "vmOutlierLimits": {
@@ -395,6 +422,17 @@ def build_recommendation_payload(**kwargs):
             VMInfo["vmName"] = str(vm_data_df['vmName'][ind])
             VMInfo["vmComputeInfo"]["vCpu"] = int(vm_data_df['vCpu'][ind])
             VMInfo["vmMemoryInfo"]["vRam"] = int(vm_data_df['vRam'][ind])
+            if 'readIOPS' in vm_data_df:
+                VMInfo["vmStorageInfo"]["readIOPS"] = int(vm_data_df['readIOPS'][ind])
+                VMInfo["vmStorageInfo"]["writeIOPS"] = int(vm_data_df['writeIOPS'][ind])
+                VMInfo["vmStorageInfo"]["peakReadIOPS"] = int(vm_data_df['peakReadIOPS'][ind])
+                VMInfo["vmStorageInfo"]["peakWriteIOPS"] = int(vm_data_df['peakWriteIOPS'][ind])
+                VMInfo["vmStorageInfo"]["readThroughput"] = int(vm_data_df['readThroughput'][ind])
+                VMInfo["vmStorageInfo"]["writeThroughput"] = int(vm_data_df['writeThroughput'][ind])
+                VMInfo["vmStorageInfo"]["peakReadThroughput"] = int(vm_data_df['vCpeakReadThroughputpu'][ind])
+                VMInfo["vmStorageInfo"]["peakWriteThroughput"] = int(vm_data_df['peakWriteThroughput'][ind])
+            else:
+                pass
             match storage_capacity:
                 case "PROVISIONED":
                     VMInfo["vmStorageInfo"]["vmdkTotal"] = int(vm_data_df['vmdkTotal'][ind])
@@ -413,7 +451,7 @@ def build_recommendation_payload(**kwargs):
         }
 
 
-    with open("output/recommendation_request.txt", "a") as f:
+    with open("output/recommendation_request.txt", "w") as f:
         print(json.dumps(sizerRequest, indent=2), file=f)
  
     return json.dumps(sizerRequest)
