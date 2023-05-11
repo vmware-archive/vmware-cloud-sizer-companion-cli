@@ -429,7 +429,7 @@ def build_recommendation_payload(**kwargs):
                 VMInfo["vmStorageInfo"]["peakWriteIOPS"] = int(vm_data_df['peakWriteIOPS'][ind])
                 VMInfo["vmStorageInfo"]["readThroughput"] = int(vm_data_df['readThroughput'][ind])
                 VMInfo["vmStorageInfo"]["writeThroughput"] = int(vm_data_df['writeThroughput'][ind])
-                VMInfo["vmStorageInfo"]["peakReadThroughput"] = int(vm_data_df['vCpeakReadThroughputpu'][ind])
+                VMInfo["vmStorageInfo"]["peakReadThroughput"] = int(vm_data_df['peakReadThroughput'][ind])
                 VMInfo["vmStorageInfo"]["peakWriteThroughput"] = int(vm_data_df['peakWriteThroughput'][ind])
             else:
                 pass
