@@ -1,5 +1,5 @@
-pandas == 1.5.2
-openpyxl == 3.0.10
-requests==2.31.0
-urllib3 == 1.26.10
-prettytable == 3.3.0
+pandas == 2.0.1
+openpyxl == 3.1.2
+requests == 2.31.0
+urllib3 == 1.26.15
+prettytable == 3.7.0
