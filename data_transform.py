@@ -451,7 +451,7 @@ def build_recommendation_payload(**kwargs):
         }
 
 
-    with open("output/recommendation_request.txt", "w") as f:
+    with open("output/custom_recommendation_request.txt", "w") as f:
         print(json.dumps(sizerRequest, indent=2), file=f)
  
     return json.dumps(sizerRequest)
