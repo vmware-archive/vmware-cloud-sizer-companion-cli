@@ -3,3 +3,4 @@ __pycache__/
 
 # Except this file
 !.gitignore
+venv-sizer

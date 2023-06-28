@@ -57,9 +57,12 @@ def default_import_sizing(**kwargs):
     default_params = {"file_type":ft, "input_path":input_path, "file_name":fn}
     vms_json = parse_excel_api(**default_params)
     if vms_json is not None:
-        sizer_request = json.dumps(vms_json['response']['sizerRequest'])
+        sizer_request = json.dumps(vms_json['response']['sizerRequest'], indent=2)
+        with open("output/default_recommendation_request.txt", "w") as f:
+            print(sizer_request, file=f)
         rec_params['sizer_request'] = sizer_request
         get_recommendation(**rec_params)
+
     else:
         print()
         print("Something went wrong.  Please check your syntax and try again.")
