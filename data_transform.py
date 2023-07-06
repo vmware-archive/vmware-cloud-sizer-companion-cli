@@ -49,7 +49,12 @@ def lova_conversion(**kwargs):
     vmdata_df = pd.concat(df_list, axis=0, ignore_index=True)
 
     # specify columns to KEEP - all others will be dropped
-    keep_columns = ['Cluster','Datacenter','Guest IP1','Guest IP2','Guest IP3','Guest IP4','VM OS','Guest Hostname', 'Power State', 'Virtual CPU', 'VM Name', 'Virtual Disk Size (MB)','Virtual Disk Used (MB)', 'Provisioned Memory (MB)', 'Consumed Memory (MB)', 'MOB ID']
+    keep_columns = ['Cluster','Datacenter','Guest IP1','Guest IP2','Guest IP3','Guest IP4','VM OS','Guest Hostname', 'Power State', 'Virtual CPU', 'VM Name', 'MOB ID']
+    if 'Virtual Disk Size (MiB)' in vmdata_df:
+        keep_columns.extend(['Virtual Disk Size (MiB)','Virtual Disk Used (MiB)', 'Provisioned Memory (MiB)'])
+    else:
+        keep_columns.extend(['Virtual Disk Size (MB)','Virtual Disk Used (MB)', 'Provisioned Memory (MB)'])
+
     vmdata_df = vmdata_df.filter(items= keep_columns, axis= 1)
 
     # rename remaining columns
@@ -60,12 +65,22 @@ def lova_conversion(**kwargs):
         'Guest Hostname':'os_name',
         'Power State':'vmState',
         'Virtual CPU':'vCpu',
-        'Provisioned Memory (MB)':'vRam',
-        'Virtual Disk Size (MB)':'vmdkTotal',
-        'Virtual Disk Used (MB)':'vmdkUsed',
         'Cluster':'cluster',
         'Datacenter':'virtualDatacenter'
         }, inplace = True)
+
+    if 'Virtual Disk Size (MiB)' in vmdata_df:
+        vmdata_df.rename(columns = {
+            'Provisioned Memory (MiB)':'vRam',
+            'Virtual Disk Size (MiB)':'vmdkTotal',
+            'Virtual Disk Used (MiB)':'vmdkUsed',
+            }, inplace = True)
+    else:
+        vmdata_df.rename(columns = {
+            'Provisioned Memory (MB)':'vRam',
+            'Virtual Disk Size (MB)':'vmdkTotal',
+            'Virtual Disk Used (MB)':'vmdkUsed',
+            }, inplace = True)
 
     fillna_values = {"Guest IP1": "no ip", "Guest IP2": "no ip", "Guest IP3": "no ip", "Guest IP4": "no ip", "os": "none specified"}
     vmdata_df.fillna(value=fillna_values, inplace = True)
