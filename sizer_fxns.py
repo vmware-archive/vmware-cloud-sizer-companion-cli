@@ -57,9 +57,12 @@ def default_import_sizing(**kwargs):
     default_params = {"file_type":ft, "input_path":input_path, "file_name":fn}
     vms_json = parse_excel_api(**default_params)
     if vms_json is not None:
-        sizer_request = json.dumps(vms_json['response']['sizerRequest'])
+        sizer_request = json.dumps(vms_json['response']['sizerRequest'], indent=2)
+        with open("output/default_recommendation_request.txt", "w") as f:
+            print(sizer_request, file=f)
         rec_params['sizer_request'] = sizer_request
         get_recommendation(**rec_params)
+
     else:
         print()
         print("Something went wrong.  Please check your syntax and try again.")
@@ -71,8 +74,36 @@ def custom_import_sizing(**kwargs):
     fn = kwargs['file_name']
     input_path = kwargs['input_path']
     output_path = kwargs['output_path']
-    ct = kwargs['cloud_type']
 
+    # the following parameters will be used to build the payload contained in the 
+    cloud_type = kwargs['cloud_type']
+    cluster_type = kwargs['cluster_type']
+    host_type = kwargs['host_type']
+    storage_capacity = kwargs['storage_capacity']
+    storage_type = kwargs['storage_type']
+    storage_vendor = kwargs['storage_vendor']
+    profile_type = kwargs['profile_type']
+    pct_cpu = kwargs['percent_cpu']
+    pct_mem = kwargs['percent_memory']
+    fttFtmType = kwargs['data_protection']
+
+    # build the payload parameter dictionary
+    payload_params = {
+        "output_path":output_path,
+        "cloud_type":cloud_type,
+        "host_type": host_type,
+        "cluster_type":cluster_type,
+        "storage_capacity":storage_capacity,
+        "storage_type":storage_type,
+        "storage_vendor":storage_vendor,
+        "profile_type":profile_type,
+        "cloudType":cloud_type,
+        "pct_cpu":pct_cpu,
+        "pct_mem":pct_mem,
+        "fttFtmType":fttFtmType
+        }
+
+    # build the parameter dictionary for getting the recommendation
     options = ['vm_placement', 'calculation_logs', 'output_format']
     rec_params = {}
     for i in options:
@@ -82,6 +113,7 @@ def custom_import_sizing(**kwargs):
             option = None
         rec_params[i] = option
 
+    # instantiate a list to be used in the payload parameter dictionary
     wp_file_list = []
 
     ingest_params = {"file_type":ft, "input_path":input_path, "file_name":fn, "output_path":output_path}
@@ -134,13 +166,22 @@ def custom_import_sizing(**kwargs):
         else:
             pass
 
+        # ensure either the last processed csv_file OR the list of workload profiles is stored as a common vairable to be used in the payload parameter dictionary
         if len(wp_file_list) == 0:
             wp_file_list = [csv_file]
         else:
             pass
-        payload_params = {"output_path":output_path, "ct":ct, "wp_file_list":wp_file_list, "cloudType":ct}
+
+        # add the list of files including the workloads to the payload parameter dictionary
+        payload_params['wp_file_list'] = wp_file_list
+
+        # build the recommendation payload
         sizer_request = build_recommendation_payload(**payload_params)
+
+        # include the recommendation payload in the sizing request for the sizer
         rec_params['sizer_request'] = sizer_request
+
+        # get the recommendation
         get_recommendation(**rec_params)
     
     else:
@@ -167,11 +208,17 @@ def get_recommendation(**kwargs):
     else:
         pass
 
+    # strip calculations out of the json, store for later use
     calcs = json_raw["calculationLog"]
     del json_raw["calculationLog"]
 
+    # strip assumptions out of the json, store for later use
+    assumps = json_raw["sizingAssumtions"]
+    del json_raw["sizingAssumtions"]
+
+    # take the rest of the json output and transform it
     output_json = recommendation_transformer(json_raw)
-    output_params = {"recommendation":output_json, "calcs":calcs,"cl":cl}
+    output_params = {"recommendation":output_json, "calcs":calcs,"assumps":assumps,"cl":cl}
     match output_format:
         case "csv":
             print("Exporting recommendation to CSV.")

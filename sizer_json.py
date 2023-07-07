@@ -81,7 +81,7 @@ def get_access_token_api(rt):
 
 def parse_excel_api(**kwargs):
     # sessiontoken = kwargs['access_token']
-    fn = kwargs['file_name']
+    fn = kwargs['file_name'][0]
     input_path = kwargs['input_path']
     adapter = kwargs['file_type']
     uri = f'https://vmc.vmware.com/api/vmc-sizer/v5/sizing/adapter/{adapter}'
@@ -90,8 +90,8 @@ def parse_excel_api(**kwargs):
         ('excelFile',(fn,open(f'{input_path}{fn}','rb'),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
         ]
 
-    # params = {'csp-auth-token': sessiontoken}
-    # response = requests.post(uri, params = params, files=files)
+    print()
+    print("Submitting Excel file for parsing.")
 
     response = requests.post(uri, files=files)
     if response.status_code == 200:
@@ -104,6 +104,8 @@ def get_pdf_api(**kwargs):
     # sessiontoken = kwargs['access_token']
     json_data = kwargs['json_data']
 
+    print()
+    print("Requesting PDF")
     if kwargs['vp'] is not None:
         vp = kwargs['vp']
     else:
@@ -127,26 +129,12 @@ def get_pdf_api(**kwargs):
 def get_recommendation_api(**kwargs):
     # sessiontoken = kwargs['access_token']
     json_data = kwargs['json_data']
+    vp = kwargs['vp']
 
-    if kwargs['vp'] is not None:
-        vp = kwargs['vp']
-    else:
-        vp = False
+    print()
+    print("Requesting recommendation")
 
-    if vp is True:
-        uri = 'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=true'
-    else:
-        uri = 'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=false'
-
-    # Staging URLs
-    # if vp is True:
-    #     uri = 'https://stg.skyscraper.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=true'
-    # else:
-    #     uri = 'https://stg.skyscraper.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement=false'
-
-
-    # my_header = {'Content-Type': 'application/json', 'csp-auth-token': sessiontoken}
-
+    uri = f'https://vmc.vmware.com/api/vmc-sizer/v5/recommendation?vmPlacement={vp}'
     my_header = {'Content-Type': 'application/json'}
     response = requests.post(uri, headers = my_header, data = json_data)
     if response.status_code == 200:
