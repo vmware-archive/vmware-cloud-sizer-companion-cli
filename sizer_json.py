@@ -87,7 +87,7 @@ def parse_excel_api(**kwargs):
     uri = f'https://vmc.vmware.com/api/vmc-sizer/v5/sizing/adapter/{adapter}'
 
     files=[
-        ('excelFile',(fn,open(f'{input_path}{fn}','rb'),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
+        ('file',(fn,open(f'{input_path}{fn}','rb'),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
         ]
 
     print()
