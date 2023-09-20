@@ -72,12 +72,12 @@ def main():
     custom_sizing_parser.add_argument('-pl', '--profile_list', nargs = '+', help = 'A space-separated list of text strings used to filter workloads for the creation of workload profiles.')
     custom_sizing_parser.add_argument('-pt', '--profile_type', nargs = '?', choices = ['GPW_GVM','DBW_ORA','DBW_SQL','VDW_FCL','VDW_ICL'], default = "GPW_GVM", type=str.upper, help = 'Type of workload profile (default = GPW_GVM).')
     custom_sizing_parser.add_argument('-ir', '--include_remaining', action= 'store_true', help= 'Use to indicate you wish to keep remaining workloads - default is to discard.')   
-    custom_sizing_parser.add_argument('-sc', '--storage_capacity', nargs = '?', choices=['PROVISIONED', 'UTILIZED'], default = "PROVISIONED", type=str.upper, help="Use to specify whether PROVISIONED or UTILIZED storage is used (default is UTILIZED).")
+    custom_sizing_parser.add_argument('-sc', '--storage_capacity', nargs = '?', choices=['PROVISIONED', 'UTILIZED'], default = "UTILIZED", type=str.upper, help="Use to specify whether PROVISIONED or UTILIZED storage is used (default is UTILIZED).")
     custom_sizing_parser.add_argument('-st', '--storage_type', nargs = '?', choices=['vSAN_EXT_STORAGE','vSAN_ONLY','EXT_STORAGE_ONLY'], default = "vSAN_ONLY", help="Use to specify vSAN only, external storage, or combination (default = vSAN_ONLY).")
     custom_sizing_parser.add_argument('-sv', '--storage_vendor', nargs = '?', choices=['FSX_N','VMC_FS','AUTO'], default = "AUTO", type=str.upper, help="Use to specify FSX for NetApp OnTap or VMW Cloud Flex Storage is preferred for external capacity (default=VMC_FS).")
     custom_sizing_parser.add_argument('-pct_cpu', '--percent_cpu', default= .3, help= "The percent cpu utilization to use for modeling, expressed as a decimal (i.e. use '1' for 100, or '.3' for 30, etc")
     custom_sizing_parser.add_argument('-pct_mem','--percent_memory', default= 1, help= "The percent memory utilization to use for modeling, expressed as a decimal (i.e. use '1' for 100, or '.3' for 30, etc")
-    custom_sizing_parser.add_argument('-dp', '--data_protection', choices=["AUTO_AUTO","FTT1_RAID1","FTT1_RAID5","FTT2_RAID1","FTT2_RAID6"], type=str.upper, default="AUTO_AUTO", help = "The vSAN failures to tolerat (FTT) and fault tolerance method (FTM).")
+    custom_sizing_parser.add_argument('-dp', '--data_protection', choices=["AUTO_AUTO","FTT1_RAID1","FTT1_RAID5","FTT2_RAID1","FTT2_RAID6"], type=str.upper, default="AUTO_AUTO", help = "The vSAN failures to tolerate (FTT) and fault tolerance method (FTM).")
 
     custom_sizing_parser.set_defaults(func = custom_import_sizing)
 
