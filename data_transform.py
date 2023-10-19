@@ -143,6 +143,10 @@ def rvtools_conversion(**kwargs):
 
     # specify columns to KEEP - all others will be dropped
     keep_columns = ['VM ID','Cluster', 'Datacenter','Primary IP Address','OS according to the VMware Tools', 'DNS Name','Powerstate','CPUs','VM','Memory']
+    if 'Provisioned MiB' in vmdata_df:
+        keep_columns.extend(['Provisioned MiB','In Use MiB'])
+    else:
+        keep_columns.extend(['Provisioned MB','In Use MB'])
     vmdata_df = vmdata_df.filter(items= keep_columns, axis= 1)
 
     # rename remaining columns
@@ -160,7 +164,18 @@ def rvtools_conversion(**kwargs):
         'Cluster':'cluster', 
         'Datacenter':'virtualDatacenter'
         }, inplace = True)
-        
+    
+    if 'Provisioned MiB' in vmdata_df:
+        vmdata_df.rename(columns = {
+            'Provisioned MiB':'vinfo_provisioned', 
+            'In Use MiB':'vinfo_used'
+            }, inplace = True)
+    else:
+        vmdata_df.rename(columns = {
+            'Provisioned MB':'vinfo_provisioned', 
+            'In Use MB':'vinfo_used'
+            }, inplace = True)
+
     fillna_values = {"ip_addresses": "no ip", "os": "none specified"}
     vmdata_df.fillna(value=fillna_values, inplace = True)
 
@@ -211,17 +226,23 @@ def rvtools_conversion(**kwargs):
     vm_consolidated = pd.merge(vm_consolidated, vpart_df, on = "vmId", how = "left")
 
     # convert RAM and storage numbers into GB
-    vm_consolidated['vmdkUsed'] = vm_consolidated['vmdkUsed']/1024
+    vm_consolidated['vinfo_provisioned'] = vm_consolidated['vinfo_provisioned']/1024
+    vm_consolidated['vinfo_used'] = vm_consolidated['vinfo_used']/1024
     vm_consolidated['vmdkTotal'] = vm_consolidated['vmdkTotal']/1024
+    vm_consolidated['vmdkUsed'] = vm_consolidated['vmdkUsed']/1024
     vm_consolidated['vRam'] = vm_consolidated['vRam']/1024
 
-    # Replace NA values for used VMDK and total VMDK with 10GB
-    storage_na_values = {"vmdkTotal": 10, "vmdkUsed": 10}
+    # Replace NA values for used VMDK and total VMDK with 0 GB
+    storage_na_values = {"vmdkTotal": 0, "vmdkUsed": 0}
     vm_consolidated.fillna(value=storage_na_values, inplace = True)
 
-    # Replace 0 values for used VMDK and total VMDK with 10GB
-    vm_consolidated['vmdkUsed'] = vm_consolidated['vmdkUsed'].replace(0, 10)
-    vm_consolidated['vmdkTotal'] = vm_consolidated['vmdkTotal'].replace(0, 10)
+    # # Replace 0 values for used VMDK and total VMDK with 10GB
+    # vm_consolidated['vmdkUsed'] = vm_consolidated['vmdkUsed'].replace(0, 10)
+    # vm_consolidated['vmdkTotal'] = vm_consolidated['vmdkTotal'].replace(0, 10)
+
+    # replace missing values from vDisk or vPartition with values from vInfo
+    vm_consolidated.loc[vm_consolidated.vmdkTotal == 0, 'vmdkTotal'] = vm_consolidated.vinfo_provisioned
+    vm_consolidated.loc[vm_consolidated.vmdkUsed == 0, 'vmdkUsed'] = vm_consolidated.vinfo_used
 
     vm_consolidated.to_csv(f'{output_path}1_vmdata_df_rvtools.csv')
     csv_file = "1_vmdata_df_rvtools.csv"
