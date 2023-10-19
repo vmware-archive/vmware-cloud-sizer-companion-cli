@@ -199,6 +199,7 @@ def rvtools_conversion(**kwargs):
     else:
         vdisk_df.rename(columns ={'Capacity MB':'vmdkTotal'}, inplace = True)
     vdisk_df.rename(columns ={'VM ID':'vmId'}, inplace = True)
+
     vdisk_df = vdisk_df.groupby(['vmId'])['vmdkTotal'].sum().reset_index()
 
     # pull in rows from vPartition for consumed storage
@@ -220,6 +221,7 @@ def rvtools_conversion(**kwargs):
     else:
         vpart_df.rename(columns ={'Consumed MB':'vmdkUsed'}, inplace = True)
     vpart_df.rename(columns ={'VM ID':'vmId'}, inplace = True)
+
     vpart_df = vpart_df.groupby(['vmId'])['vmdkUsed'].sum().reset_index()
 
     vm_consolidated = pd.merge(vmdata_df, vdisk_df, on = "vmId", how = "left")
@@ -275,8 +277,12 @@ def include_workloads(**kwargs):
     print(f'Including only those workloads where {infilf} includes {infil}')
     vm_data_df = pd.read_csv(f'{output_path}{csv_file}',index_col=0)
 
-    pattern = '|'.join(infil)
-    vm_data_df_trimmed = vm_data_df[vm_data_df[infilf].str.contains(pattern, case=False) == True]
+    if infilf == "vmName":
+        print("using exact string match on vmName")
+        vm_data_df_trimmed = vm_data_df[vm_data_df['vmName'].isin(infil)]
+    else:
+        pattern = '|'.join(infil)
+        vm_data_df_trimmed = vm_data_df[vm_data_df[infilf].str.contains(pattern, case=False) == True]
     vm_data_df_trimmed.to_csv(f'{output_path}3_vmdata_df_infil.csv')
     csv_file = "3_vmdata_df_infil.csv"
     return csv_file
