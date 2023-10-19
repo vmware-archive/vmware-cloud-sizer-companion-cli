@@ -236,10 +236,6 @@ def rvtools_conversion(**kwargs):
     storage_na_values = {"vmdkTotal": 0, "vmdkUsed": 0}
     vm_consolidated.fillna(value=storage_na_values, inplace = True)
 
-    # # Replace 0 values for used VMDK and total VMDK with 10GB
-    # vm_consolidated['vmdkUsed'] = vm_consolidated['vmdkUsed'].replace(0, 10)
-    # vm_consolidated['vmdkTotal'] = vm_consolidated['vmdkTotal'].replace(0, 10)
-
     # replace missing values from vDisk or vPartition with values from vInfo
     vm_consolidated.loc[vm_consolidated.vmdkTotal == 0, 'vmdkTotal'] = vm_consolidated.vinfo_provisioned
     vm_consolidated.loc[vm_consolidated.vmdkUsed == 0, 'vmdkUsed'] = vm_consolidated.vinfo_used
