@@ -298,8 +298,12 @@ def exclude_workloads(**kwargs):
     print(f'Excluding those workloads where {exfilf} includes {exfil}')
     vm_data_df = pd.read_csv(f'{output_path}{csv_file}',index_col=0)
 
-    pattern = '|'.join(exfil)
-    vm_data_df_trimmed = vm_data_df[vm_data_df[exfilf].str.contains(pattern, case=False) == False]
+    if exfilf == "vmName":
+        print("using exact string match on vmName")
+        vm_data_df_trimmed = vm_data_df[vm_data_df['vmName'].isin(exfil)]
+    else:
+        pattern = '|'.join(exfil)
+        vm_data_df_trimmed = vm_data_df[vm_data_df[exfilf].str.contains(pattern, case=False) == False]
     vm_data_df_trimmed.to_csv(f'{output_path}4_vmdata_df_exfil.csv')
     csv_file = "4_vmdata_df_exfil.csv"
     return csv_file
