@@ -300,7 +300,7 @@ def exclude_workloads(**kwargs):
 
     if exfilf == "vmName":
         print("using exact string match on vmName")
-        vm_data_df_trimmed = vm_data_df[vm_data_df['vmName'].isin(exfil)]
+        vm_data_df_trimmed = vm_data_df[~vm_data_df['vmName'].isin(exfil)]
     else:
         pattern = '|'.join(exfil)
         vm_data_df_trimmed = vm_data_df[vm_data_df[exfilf].str.contains(pattern, case=False) == False]
